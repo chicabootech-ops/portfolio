@@ -14,8 +14,38 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ??
+      (process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : "http://localhost:3000")
+  ),
   title: "Chic A Boo",
   description: "Bespoke flowers and gifts crafted with care.",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
+  openGraph: {
+    title: "Chic A Boo",
+    description: "Bespoke flowers and gifts crafted with care.",
+    type: "website",
+    images: [
+      {
+        url: "/logo.png",
+        width: 1536,
+        height: 1024,
+        alt: "Chic A Boo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Chic A Boo",
+    description: "Bespoke flowers and gifts crafted with care.",
+    images: ["/logo.png"],
+  },
 };
 
 export default function RootLayout({
