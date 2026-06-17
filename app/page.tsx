@@ -1,12 +1,12 @@
-import Navbar from "@/components/navbar";
-
 export default function HomePage() {
   return (
-    <div className="w-screen min-h-screen bg-background">
-      <Navbar />
-      <main className="pt-32 px-8">
-        <h1 className="text-3xl font-semibold text-foreground">Home</h1>
-      </main>
-    </div>
+    <main className="min-h-screen pt-36 md:pt-40 px-6 md:px-8 pb-16">
+      <h1 className="text-3xl md:text-4xl font-semibold text-foreground">
+        Home
+      </h1>
+      <p className="mt-4 text-muted-foreground max-w-xl">
+        Welcome to Chic A Boo — bespoke flowers and gifts crafted with care.
+      </p>
+    </main>
   );
 }
