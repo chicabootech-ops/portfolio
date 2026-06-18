@@ -13,33 +13,69 @@ import {
 import { SectionCard } from "./shared/section-card";
 import { SettingsRow } from "./shared/settings-row";
 
-const settingsGroups = [
-  {
-    title: "Account",
-    items: [
-      { icon: <User size={18} />, label: "Profile Information", href: "/account#profile" },
-      { icon: <KeyRound size={18} />, label: "Change Password", href: "/account/security" },
-      { icon: <Bell size={18} />, label: "Notifications", href: "/account/notifications" },
-    ],
-  },
-  {
-    title: "Preferences",
-    items: [
-      { icon: <Globe size={18} />, label: "Language", href: "/account/settings#language" },
-      { icon: <Lock size={18} />, label: "Privacy Settings", href: "/account/settings#privacy" },
-      { icon: <Shield size={18} />, label: "Security Settings", href: "/account/security" },
-    ],
-  },
-  {
-    title: "Devices & Connections",
-    items: [
-      { icon: <Smartphone size={18} />, label: "Manage Devices", href: "/account/security#devices" },
-      { icon: <Link2 size={18} />, label: "Connected Accounts", href: "/account/settings#connected" },
-    ],
-  },
-];
+export function AccountSettingsSection({
+  onEditProfile,
+}: {
+  onEditProfile?: () => void;
+}) {
+  const settingsGroups = [
+    {
+      title: "Account",
+      items: [
+        {
+          icon: <User size={18} />,
+          label: "Profile Information",
+          onClick: onEditProfile,
+        },
+        {
+          icon: <KeyRound size={18} />,
+          label: "Change Password",
+          href: "/account/security",
+        },
+        {
+          icon: <Bell size={18} />,
+          label: "Notifications",
+          href: "/account/notifications",
+        },
+      ],
+    },
+    {
+      title: "Preferences",
+      items: [
+        {
+          icon: <Globe size={18} />,
+          label: "Language",
+          href: "/account/settings#language",
+        },
+        {
+          icon: <Lock size={18} />,
+          label: "Privacy Settings",
+          href: "/account/settings#privacy",
+        },
+        {
+          icon: <Shield size={18} />,
+          label: "Security Settings",
+          href: "/account/security",
+        },
+      ],
+    },
+    {
+      title: "Devices & Connections",
+      items: [
+        {
+          icon: <Smartphone size={18} />,
+          label: "Manage Devices",
+          href: "/account/security#devices",
+        },
+        {
+          icon: <Link2 size={18} />,
+          label: "Connected Accounts",
+          href: "/account/settings#connected",
+        },
+      ],
+    },
+  ];
 
-export function AccountSettingsSection() {
   return (
     <SectionCard title="Account Settings">
       <div className="space-y-5">
@@ -54,7 +90,8 @@ export function AccountSettingsSection() {
                   key={item.label}
                   icon={item.icon}
                   label={item.label}
-                  href={item.href}
+                  href={"href" in item ? item.href : undefined}
+                  onClick={"onClick" in item ? item.onClick : undefined}
                 />
               ))}
             </div>

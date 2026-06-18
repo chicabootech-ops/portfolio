@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { useEffect, useState } from "react";
+import Image from "next/image";
 import { motion } from "motion/react";
 import {
   BadgeCheck,
@@ -14,10 +15,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { AccountProfile } from "@/types/account";
 import type { AuthUser } from "@/types/auth";
+import { cn } from "@/lib/utils";
 
 type AccountHeaderProps = {
   user: AuthUser;
   profile: AccountProfile;
+  avatarUrl: string | null;
+  onEditProfile: () => void;
 };
 
 function getInitials(name: string) {
@@ -36,7 +40,12 @@ function formatMemberSince(date: string) {
   }).format(new Date(date));
 }
 
-export function AccountHeader({ user, profile }: AccountHeaderProps) {
+export function AccountHeader({
+  user,
+  profile,
+  avatarUrl,
+  onEditProfile,
+}: AccountHeaderProps) {
   return (
     <motion.section
       initial={{ opacity: 0, y: 12 }}
@@ -51,12 +60,24 @@ export function AccountHeader({ user, profile }: AccountHeaderProps) {
 
       <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-4">
-          <div
-            className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/70 text-xl font-semibold text-primary-foreground shadow-md md:size-20 md:text-2xl"
-            aria-hidden
-          >
-            {getInitials(user.name)}
-          </div>
+          {avatarUrl ? (
+            <div className="relative size-16 shrink-0 overflow-hidden rounded-2xl shadow-md md:size-20">
+              <Image
+                src={avatarUrl}
+                alt=""
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            </div>
+          ) : (
+            <div
+              className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/70 text-xl font-semibold text-primary-foreground shadow-md md:size-20 md:text-2xl"
+              aria-hidden
+            >
+              {getInitials(user.name)}
+            </div>
+          )}
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
@@ -112,14 +133,13 @@ export function AccountHeader({ user, profile }: AccountHeaderProps) {
         </div>
 
         <Button
-          asChild
+          type="button"
           variant="outline"
+          onClick={onEditProfile}
           className="h-11 min-h-[44px] w-full shrink-0 rounded-full sm:w-auto"
         >
-          <Link href="/account#profile">
-            <Pencil size={16} aria-hidden />
-            Edit Profile
-          </Link>
+          <Pencil size={16} aria-hidden />
+          Edit Profile
         </Button>
       </div>
     </motion.section>
