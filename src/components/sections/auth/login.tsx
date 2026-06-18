@@ -5,13 +5,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/components/providers/auth-provider";
 import { loginUser } from "@/lib/auth/api";
-import { saveAuthSession } from "@/lib/auth/session";
 import { AuthLayout } from "./auth-layout";
 import { AuthFormField, authInputClassName } from "./auth-form-field";
 
 export function LoginSection() {
   const router = useRouter();
+  const { refreshSession } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -24,9 +25,10 @@ export function LoginSection() {
     setIsSubmitting(true);
 
     try {
-      const response = await loginUser({ email: email.trim(), password });
-      saveAuthSession(response);
-      router.push("/account");
+      await loginUser({ email: email.trim(), password });
+      await refreshSession();
+      router.push("/");
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to sign in.");
     } finally {
@@ -74,8 +76,9 @@ export function LoginSection() {
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder="Enter your password"
-              className={authInputClassName}
+            placeholder="Enter your password"
+            maxLength={128}
+            className={authInputClassName}
             />
             <button
               type="button"

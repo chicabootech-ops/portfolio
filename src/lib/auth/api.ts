@@ -1,52 +1,43 @@
-import { apiConfig } from "@/config/api";
-import type {
-  AuthResponse,
-  LoginCredentials,
-  SignupCredentials,
-} from "@/types/auth";
+import type { AuthSessionResponse, LoginCredentials, SignupCredentials } from "@/types/auth";
 
 type ApiErrorBody = {
-  detail?: string | { msg: string }[];
+  error?: string;
 };
-
-function parseErrorMessage(body: ApiErrorBody, fallback: string): string {
-  if (!body.detail) return fallback;
-  if (typeof body.detail === "string") return body.detail;
-  if (Array.isArray(body.detail) && body.detail.length > 0) {
-    return body.detail[0]?.msg ?? fallback;
-  }
-  return fallback;
-}
 
 async function postAuth<TBody extends object>(
   path: string,
   body: TBody,
   fallbackError: string
-): Promise<AuthResponse> {
-  const response = await fetch(`${apiConfig.baseUrl}${path}`, {
+): Promise<AuthSessionResponse> {
+  const response = await fetch(path, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
+    credentials: "same-origin",
   });
 
   const data = (await response.json().catch(() => ({}))) as
-    | AuthResponse
+    | AuthSessionResponse
     | ApiErrorBody;
 
   if (!response.ok) {
-    throw new Error(parseErrorMessage(data as ApiErrorBody, fallbackError));
+    const message =
+      typeof data === "object" && data && "error" in data && data.error
+        ? data.error
+        : fallbackError;
+    throw new Error(message);
   }
 
-  return data as AuthResponse;
+  return data as AuthSessionResponse;
 }
 
 export function loginUser(credentials: LoginCredentials) {
-  return postAuth(apiConfig.auth.login, credentials, "Unable to sign in.");
+  return postAuth("/api/auth/login", credentials, "Unable to sign in.");
 }
 
 export function registerUser(credentials: SignupCredentials) {
   return postAuth(
-    apiConfig.auth.register,
+    "/api/auth/register",
     credentials,
     "Unable to create your account."
   );

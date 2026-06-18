@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ConditionalNavbar } from "@/components/layout";
+import { AuthProvider } from "@/components/providers/auth-provider";
 import { siteConfig } from "@/config/site";
 import "./globals.css";
 
@@ -55,8 +56,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background">
-        <ConditionalNavbar />
-        {children}
+        <AuthProvider>
+          <ConditionalNavbar />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

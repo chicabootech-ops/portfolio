@@ -3,10 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Menu, X, Search, User, Heart, ShoppingBag, ChevronDown } from "lucide-react";
+import { useAuth } from "@/components/providers/auth-provider";
 import { shopCategories } from "@/data/categories";
 import { mainNavLinks, siteConfig } from "@/config/site";
+import { UserAccountDropdown } from "./user-account-dropdown";
 
 export default function Navbar() {
+  const { user, isLoading } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
@@ -57,9 +60,16 @@ export default function Navbar() {
 
           {/* User Utilities */}
           <div className="flex items-center gap-4 md:gap-6 shrink-0">
-            <Link href="/login" className="hidden sm:flex text-foreground hover:text-primary transition-colors">
-              <User size={22} strokeWidth={1.5} />
-            </Link>
+            {!isLoading && user ? (
+              <UserAccountDropdown className="hidden sm:block" />
+            ) : (
+              <Link
+                href="/login"
+                className="hidden sm:flex text-foreground hover:text-primary transition-colors"
+              >
+                <User size={22} strokeWidth={1.5} />
+              </Link>
+            )}
             <Link href="/wishlist" className="hidden sm:flex text-foreground hover:text-primary transition-colors">
               <Heart size={22} strokeWidth={1.5} />
             </Link>
@@ -152,9 +162,27 @@ export default function Navbar() {
             ))}
           </div>
           
-          <div className="flex gap-6 mt-auto pt-6 border-t border-border/30">
-            <Link href="/login" className="flex items-center gap-2 text-foreground font-medium"><User size={20} /> Sign In</Link>
-            <Link href="/wishlist" className="flex items-center gap-2 text-foreground font-medium"><Heart size={20} /> Wishlist</Link>
+          <div className="mt-auto border-t border-border/30 pt-6">
+            {!isLoading && user ? (
+              <UserAccountDropdown onNavigate={() => setIsMobileMenuOpen(false)} />
+            ) : (
+              <div className="flex gap-6">
+                <Link
+                  href="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-2 font-medium text-foreground"
+                >
+                  <User size={20} /> Sign In
+                </Link>
+                <Link
+                  href="/wishlist"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-2 font-medium text-foreground"
+                >
+                  <Heart size={20} /> Wishlist
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}

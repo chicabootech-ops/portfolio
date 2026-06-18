@@ -1,3 +1,7 @@
+export type AuthSessionResponse = {
+  user: AuthUser;
+};
+
 export type AuthUser = {
   id: string;
   email: string;

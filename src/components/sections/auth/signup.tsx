@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/components/providers/auth-provider";
 import { registerUser } from "@/lib/auth/api";
-import { saveAuthSession } from "@/lib/auth/session";
 import { AuthLayout } from "./auth-layout";
 import { AuthFormField, authInputClassName } from "./auth-form-field";
 
@@ -14,6 +14,7 @@ const MIN_PASSWORD_LENGTH = 10;
 
 export function SignupSection() {
   const router = useRouter();
+  const { refreshSession } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -39,13 +40,14 @@ export function SignupSection() {
     setIsSubmitting(true);
 
     try {
-      const response = await registerUser({
+      await registerUser({
         name: name.trim(),
         email: email.trim(),
         password,
       });
-      saveAuthSession(response);
-      router.push("/account");
+      await refreshSession();
+      router.push("/");
+      router.refresh();
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Unable to create your account."
@@ -82,6 +84,7 @@ export function SignupSection() {
             value={name}
             onChange={(event) => setName(event.target.value)}
             placeholder="Your name"
+            maxLength={100}
             className={authInputClassName}
           />
         </AuthFormField>
@@ -118,6 +121,7 @@ export function SignupSection() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="Create a secure password"
+              maxLength={128}
               className={authInputClassName}
             />
             <button
