@@ -1,26 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion } from "motion/react";
 import {
   BadgeCheck,
-  Crown,
   Mail,
   Pencil,
   Phone,
-  Sparkles,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { AccountProfile } from "@/types/account";
 import type { AuthUser } from "@/types/auth";
-import { cn } from "@/lib/utils";
+import { apiConfig } from "@/config/api";
 
 type AccountHeaderProps = {
   user: AuthUser;
-  profile: AccountProfile;
-  avatarUrl: string | null;
   onEditProfile: () => void;
 };
 
@@ -40,12 +34,15 @@ function formatMemberSince(date: string) {
   }).format(new Date(date));
 }
 
-export function AccountHeader({
-  user,
-  profile,
-  avatarUrl,
-  onEditProfile,
-}: AccountHeaderProps) {
+function resolveAvatarUrl(url: string | null) {
+  if (!url) return null;
+  if (url.startsWith("http")) return url;
+  return `${apiConfig.baseUrl}${url}`;
+}
+
+export function AccountHeader({ user, onEditProfile }: AccountHeaderProps) {
+  const avatarSrc = resolveAvatarUrl(user.avatar_url);
+
   return (
     <motion.section
       initial={{ opacity: 0, y: 12 }}
@@ -60,15 +57,9 @@ export function AccountHeader({
 
       <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-4">
-          {avatarUrl ? (
+          {avatarSrc ? (
             <div className="relative size-16 shrink-0 overflow-hidden rounded-2xl shadow-md md:size-20">
-              <Image
-                src={avatarUrl}
-                alt=""
-                fill
-                className="object-cover"
-                unoptimized
-              />
+              <Image src={avatarSrc} alt="" fill className="object-cover" unoptimized />
             </div>
           ) : (
             <div
@@ -80,32 +71,18 @@ export function AccountHeader({
           )}
 
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-xl font-semibold text-foreground md:text-2xl">
-                {user.name}
-              </h1>
-              {profile.isPremium ? (
-                <Badge className="gap-1 bg-primary text-primary-foreground">
-                  <Crown size={12} aria-hidden />
-                  Premium
-                </Badge>
-              ) : null}
-              {profile.loyaltyLevel ? (
-                <Badge variant="outline" className="gap-1">
-                  <Sparkles size={12} aria-hidden />
-                  {profile.loyaltyLevel} Member
-                </Badge>
-              ) : null}
-            </div>
+            <h1 className="text-xl font-semibold text-foreground md:text-2xl">{user.name}</h1>
 
             <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
               <Mail size={14} aria-hidden />
               {user.email}
             </p>
-            <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
-              <Phone size={14} aria-hidden />
-              {profile.phone}
-            </p>
+            {user.phone ? (
+              <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
+                <Phone size={14} aria-hidden />
+                {user.phone}
+              </p>
+            ) : null}
 
             <div className="mt-3 flex flex-wrap gap-2">
               {user.is_verified ? (
@@ -116,14 +93,14 @@ export function AccountHeader({
               ) : (
                 <Badge variant="warning">Email not verified</Badge>
               )}
-              {profile.phoneVerified ? (
+              {user.phone_verified ? (
                 <Badge variant="success" className="gap-1">
                   <BadgeCheck size={12} aria-hidden />
                   Phone verified
                 </Badge>
-              ) : (
+              ) : user.phone ? (
                 <Badge variant="warning">Phone not verified</Badge>
-              )}
+              ) : null}
             </div>
 
             <p className="mt-3 text-xs text-muted-foreground">

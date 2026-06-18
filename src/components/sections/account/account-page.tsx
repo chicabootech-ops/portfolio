@@ -1,23 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { PageBreadcrumb } from "@/components/layout/page-breadcrumb";
 import { useAuth } from "@/components/providers/auth-provider";
 import {
-  accountAddresses as mockAddresses,
-  accountProfile as mockProfile,
-  accountStats,
-  defaultPreferences,
-  paymentMethods,
-  recentOrders,
-  securityStatus,
-} from "@/data/account-mock";
-import {
-  getStoredAddresses,
-  getStoredAvatar,
-  getStoredPhone,
-} from "@/lib/account/profile-storage";
-import type { AccountAddress, AccountProfile } from "@/types/account";
+  fetchAddresses,
+  fetchProfile,
+  fetchSecurity,
+} from "@/lib/account/api";
+import type { AccountAddress, SecurityStatus } from "@/types/account";
+import type { AuthUser } from "@/types/auth";
 import { AccountHeader } from "./account-header";
 import { EditProfileSheet } from "./edit-profile-sheet";
 import { OrderShortcuts } from "./order-shortcuts";
@@ -29,48 +22,57 @@ import { SecurityCenter } from "./security-center";
 import { SupportCenter } from "./support-center";
 import { ShoppingPreferencesSection } from "./shopping-preferences-section";
 import { LogoutSection } from "./logout-section";
+import { DangerZoneSection } from "./danger-zone-section";
 import { AccountPageSkeleton } from "./account-page-skeleton";
 
+const EMPTY_STATS = { orders: 0, wishlist: 0, returns: 0, refunds: 0 };
+
 export function AccountPage() {
+  const router = useRouter();
   const { user, isLoading, refreshSession } = useAuth();
   const [editorOpen, setEditorOpen] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [phone, setPhone] = useState(mockProfile.phone);
-  const [addresses, setAddresses] = useState<AccountAddress[]>(mockAddresses);
-  const [displayName, setDisplayName] = useState("");
+  const [profile, setProfile] = useState<AuthUser | null>(null);
+  const [addresses, setAddresses] = useState<AccountAddress[]>([]);
+  const [security, setSecurity] = useState<SecurityStatus | null>(null);
+  const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
+    if (isLoading) return;
     if (!user) return;
-    setDisplayName(user.name);
-    setAvatarUrl(getStoredAvatar(user.id));
-    const storedPhone = getStoredPhone(user.id);
-    if (storedPhone) setPhone(storedPhone);
-    const storedAddresses = getStoredAddresses(user.id);
-    if (storedAddresses?.length) setAddresses(storedAddresses);
-  }, [user]);
+    if (!user.profile_completed) {
+      router.replace("/onboarding");
+      return;
+    }
 
-  const profile: AccountProfile = useMemo(
-    () => ({
-      ...mockProfile,
-      phone,
-    }),
-    [phone]
-  );
+    let cancelled = false;
+    setDataLoading(true);
 
-  const headerUser = useMemo(
-    () => (user ? { ...user, name: displayName || user.name } : null),
-    [user, displayName]
-  );
+    Promise.all([fetchProfile(), fetchAddresses(), fetchSecurity()])
+      .then(([profileData, addressData, securityData]) => {
+        if (cancelled) return;
+        setProfile(profileData);
+        setAddresses(addressData);
+        setSecurity(securityData);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setProfile(user);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setDataLoading(false);
+      });
 
-  if (isLoading) {
+    return () => {
+      cancelled = true;
+    };
+  }, [user, isLoading, router]);
+
+  if (isLoading || dataLoading || !user || !profile) {
     return <AccountPageSkeleton />;
   }
 
-  if (!user || !headerUser) {
-    return null;
-  }
-
-  const defaultAddress = addresses.find((a) => a.isDefault) ?? addresses[0] ?? null;
+  const defaultAddress = addresses.find((a) => a.is_default) ?? addresses[0] ?? null;
 
   return (
     <main className="min-h-screen bg-background pb-24 pt-36 md:pb-16 md:pt-40">
@@ -82,31 +84,37 @@ export function AccountPage() {
 
         <div className="space-y-5 md:space-y-6">
           <AccountHeader
-            user={headerUser}
-            profile={profile}
-            avatarUrl={avatarUrl}
+            user={profile}
             onEditProfile={() => setEditorOpen(true)}
           />
-          <OrderShortcuts stats={accountStats} />
+          <OrderShortcuts stats={EMPTY_STATS} />
 
           <div className="grid gap-5 lg:grid-cols-2 lg:gap-6">
             <div className="space-y-5 lg:col-span-2">
-              <RecentOrders orders={recentOrders} />
+              <RecentOrders orders={[]} />
             </div>
             <AddressesSection addresses={addresses} />
-            <PaymentMethodsSection methods={paymentMethods} />
+            <PaymentMethodsSection methods={[]} />
           </div>
 
           <div className="grid gap-5 lg:grid-cols-2 lg:gap-6">
             <AccountSettingsSection onEditProfile={() => setEditorOpen(true)} />
-            <SecurityCenter status={securityStatus} />
+            {security ? <SecurityCenter status={security} /> : null}
           </div>
 
           <div className="grid gap-5 lg:grid-cols-2 lg:gap-6">
             <SupportCenter />
-            <ShoppingPreferencesSection initial={defaultPreferences} />
+            <ShoppingPreferencesSection
+              initial={profile.preferences}
+              onSaved={async () => {
+                const updated = await fetchProfile();
+                setProfile(updated);
+                await refreshSession();
+              }}
+            />
           </div>
 
+          <DangerZoneSection />
           <LogoutSection />
         </div>
       </div>
@@ -114,15 +122,15 @@ export function AccountPage() {
       <EditProfileSheet
         open={editorOpen}
         onOpenChange={setEditorOpen}
-        user={headerUser}
-        phone={phone}
-        avatarUrl={avatarUrl}
+        user={profile}
         defaultAddress={defaultAddress}
-        onSaved={async (data) => {
-          setDisplayName(data.name);
-          setPhone(data.phone);
-          setAvatarUrl(data.avatarUrl);
-          if (data.addresses.length) setAddresses(data.addresses);
+        onSaved={async () => {
+          const [updatedProfile, updatedAddresses] = await Promise.all([
+            fetchProfile(),
+            fetchAddresses(),
+          ]);
+          setProfile(updatedProfile);
+          setAddresses(updatedAddresses);
           await refreshSession();
         }}
       />

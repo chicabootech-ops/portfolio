@@ -13,7 +13,7 @@ import type { AuthUser } from "@/types/auth";
 type AuthContextValue = {
   user: AuthUser | null;
   isLoading: boolean;
-  refreshSession: () => Promise<void>;
+  refreshSession: () => Promise<AuthUser | null>;
   logout: () => Promise<void>;
 };
 
@@ -26,6 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshSession = useCallback(async () => {
     const sessionUser = await fetchSession();
     setUser(sessionUser);
+    return sessionUser;
   }, []);
 
   useEffect(() => {

@@ -46,7 +46,7 @@ export function SignupSection() {
         password,
       });
       await refreshSession();
-      router.push("/");
+      router.push("/onboarding");
       router.refresh();
     } catch (err) {
       setError(

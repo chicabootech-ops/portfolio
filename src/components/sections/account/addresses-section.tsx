@@ -13,7 +13,7 @@ type AddressesSectionProps = {
 };
 
 export function AddressesSection({ addresses }: AddressesSectionProps) {
-  const defaultAddress = addresses.find((a) => a.isDefault) ?? addresses[0];
+  const defaultAddress = addresses.find((a) => a.is_default) ?? addresses[0];
 
   return (
     <SectionCard
@@ -70,7 +70,7 @@ export function AddressesSection({ addresses }: AddressesSectionProps) {
           ) : null}
 
           {addresses
-            .filter((a) => !a.isDefault)
+            .filter((a) => !a.is_default)
             .map((address) => (
               <article
                 key={address.id}

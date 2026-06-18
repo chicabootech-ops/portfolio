@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 import { ACCESS_COOKIE } from "@/lib/auth/constants";
 
-const PROTECTED_PREFIXES = ["/account"];
+const PROTECTED_PREFIXES = ["/account", "/onboarding"];
 const AUTH_PAGES = new Set(["/login", "/signup"]);
 
 async function hasValidAccessToken(request: NextRequest): Promise<boolean> {
@@ -49,5 +49,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/account/:path*", "/login", "/signup"],
+  matcher: ["/account/:path*", "/onboarding", "/login", "/signup"],
 };

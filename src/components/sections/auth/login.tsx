@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -12,6 +12,7 @@ import { AuthFormField, authInputClassName } from "./auth-form-field";
 
 export function LoginSection() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { refreshSession } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,8 +27,15 @@ export function LoginSection() {
 
     try {
       await loginUser({ email: email.trim(), password });
-      await refreshSession();
-      router.push("/");
+      const session = await refreshSession();
+      const next = searchParams.get("next");
+      if (next) {
+        router.push(next);
+      } else if (session && !session.profile_completed) {
+        router.push("/onboarding");
+      } else {
+        router.push("/account");
+      }
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to sign in.");

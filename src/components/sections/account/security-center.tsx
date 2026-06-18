@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
 import {
   KeyRound,
   LogOut,
@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { SecurityStatus } from "@/types/account";
+import { revokeOtherSessions } from "@/lib/account/api";
 import { SectionCard } from "./shared/section-card";
 
 type SecurityCenterProps = {
@@ -46,6 +47,22 @@ function StatusItem({
 }
 
 export function SecurityCenter({ status }: SecurityCenterProps) {
+  const [isRevoking, setIsRevoking] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  async function handleRevokeOthers() {
+    setIsRevoking(true);
+    setMessage(null);
+    try {
+      await revokeOtherSessions();
+      setMessage("Other sessions have been signed out.");
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Could not revoke sessions");
+    } finally {
+      setIsRevoking(false);
+    }
+  }
+
   return (
     <SectionCard title="Security Center">
       <div className="mb-4 flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
@@ -53,8 +70,8 @@ export function SecurityCenter({ status }: SecurityCenterProps) {
         <div>
           <p className="font-medium text-foreground">Your account is protected</p>
           <p className="text-sm text-muted-foreground">
-            {status.activeSessions} active session
-            {status.activeSessions !== 1 ? "s" : ""} on your account
+            {status.active_sessions} active session
+            {status.active_sessions !== 1 ? "s" : ""} on your account
           </p>
         </div>
       </div>
@@ -63,53 +80,45 @@ export function SecurityCenter({ status }: SecurityCenterProps) {
         <StatusItem
           icon={<Mail size={16} />}
           label="Email verification"
-          ok={status.emailVerified}
-          detail={status.emailVerified ? "Verified and secure" : "Verify your email"}
+          ok={status.email_verified}
+          detail={status.email_verified ? "Verified and secure" : "Verify your email"}
         />
         <StatusItem
           icon={<Phone size={16} />}
           label="Phone verification"
-          ok={status.phoneVerified}
-          detail={status.phoneVerified ? "Verified and secure" : "Add and verify phone"}
+          ok={status.phone_verified}
+          detail={status.phone_verified ? "Verified and secure" : "Add and verify phone"}
         />
         <StatusItem
           icon={<KeyRound size={16} />}
           label="Password"
-          ok={status.passwordSet}
-          detail={status.passwordSet ? "Strong password set" : "Create a password"}
+          ok={status.password_set}
+          detail={status.password_set ? "Strong password set" : "Create a password"}
         />
         <StatusItem
           icon={<Smartphone size={16} />}
           label="Two-factor authentication"
-          ok={status.twoFactorEnabled}
+          ok={status.two_factor_enabled}
           detail={
-            status.twoFactorEnabled
+            status.two_factor_enabled
               ? "2FA is enabled"
               : "Add an extra layer of security"
           }
         />
       </div>
 
-      <div className="mt-4 grid gap-2 sm:grid-cols-3">
+      {message ? <p className="mt-3 text-sm text-muted-foreground">{message}</p> : null}
+
+      <div className="mt-4 grid gap-2 sm:grid-cols-2">
         <Button
-          asChild
+          type="button"
           variant="outline"
           className="h-11 min-h-[44px] rounded-full"
+          disabled={isRevoking}
+          onClick={handleRevokeOthers}
         >
-          <Link href="/account/security">Manage Security</Link>
-        </Button>
-        <Button variant="outline" className="h-11 min-h-[44px] rounded-full">
           <LogOut size={16} aria-hidden />
-          Logout Other Devices
-        </Button>
-        <Button
-          asChild
-          className="h-11 min-h-[44px] rounded-full"
-        >
-          <Link href="/account/security#password">
-            <KeyRound size={16} aria-hidden />
-            Change Password
-          </Link>
+          {isRevoking ? "Signing out…" : "Logout other devices"}
         </Button>
       </div>
     </SectionCard>

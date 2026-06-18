@@ -1,3 +1,5 @@
+import type { UserPreferences } from "@/types/auth";
+
 export type OrderStatus =
   | "delivered"
   | "shipped"
@@ -25,7 +27,7 @@ export type AccountAddress = {
   city: string;
   state: string;
   pincode: string;
-  isDefault: boolean;
+  is_default: boolean;
 };
 
 export type PaymentMethod = {
@@ -36,13 +38,6 @@ export type PaymentMethod = {
   isDefault: boolean;
 };
 
-export type AccountProfile = {
-  phone: string;
-  phoneVerified: boolean;
-  loyaltyLevel: "Gold" | "Silver" | "Bronze" | null;
-  isPremium: boolean;
-};
-
 export type AccountStats = {
   orders: number;
   wishlist: number;
@@ -51,20 +46,35 @@ export type AccountStats = {
 };
 
 export type SecurityStatus = {
-  emailVerified: boolean;
-  phoneVerified: boolean;
-  passwordSet: boolean;
-  twoFactorEnabled: boolean;
-  activeSessions: number;
+  email_verified: boolean;
+  phone_verified: boolean;
+  password_set: boolean;
+  two_factor_enabled: boolean;
+  active_sessions: number;
+  last_login_at: string | null;
+  account_created_at: string;
 };
 
-export type ShoppingPreferences = {
-  theme: "light" | "dark" | "system";
-  language: string;
-  currency: string;
-  marketingEmails: boolean;
-  orderUpdates: boolean;
-  wishlistAlerts: boolean;
-  priceDropAlerts: boolean;
-  backInStockAlerts: boolean;
+export type UserSession = {
+  id: string;
+  device_name: string;
+  browser: string;
+  ip_address: string | null;
+  last_active_at: string;
+  created_at: string;
+  is_current: boolean;
+};
+
+export type ShoppingPreferences = UserPreferences;
+
+export type ProfileResponse = {
+  user: import("@/types/auth").AuthUser;
+};
+
+export type OnboardingPayload = {
+  name: string;
+  phone: string;
+  address: Omit<AccountAddress, "id" | "is_default"> & { is_default?: boolean };
+  preferences: UserPreferences;
+  profile_completed: boolean;
 };
