@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { collections } from "@/data/collections";
+import { ImageWithSkeleton } from "@/components/skeletons";
 import { cn } from "@/lib/utils";
 
 export function ShopByCollectionSection() {
@@ -50,7 +50,7 @@ export function ShopByCollectionSection() {
           ref={scrollRef}
           className="flex scroll-smooth overflow-x-auto px-3 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] sm:px-4 md:px-16 lg:px-20 [&::-webkit-scrollbar]:hidden"
         >
-          {collections.map((collection) => (
+          {collections.map((collection, index) => (
             <Link
               key={collection.href}
               href={collection.href}
@@ -65,12 +65,15 @@ export function ShopByCollectionSection() {
               >
                 <div className="rounded-full bg-white p-px sm:p-[2px] md:p-[2.5px]">
                   <div className="relative size-12 overflow-hidden rounded-full sm:size-18 md:size-21">
-                    <Image
+                    <ImageWithSkeleton
                       src={collection.image}
                       alt={collection.label}
                       fill
                       sizes="(max-width: 640px) 48px, (max-width: 768px) 72px, 84px"
                       className="object-cover"
+                      skeletonClassName="rounded-full"
+                      priority={index < 5}
+                      loading={index < 5 ? "eager" : "lazy"}
                     />
                   </div>
                 </div>

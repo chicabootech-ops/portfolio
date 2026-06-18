@@ -1,12 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useRef } from "react";
 import { ChevronLeft, ChevronRight, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { bestSellingProducts } from "@/data/products";
 import { formatPrice } from "@/lib/format";
+import { ImageWithSkeleton } from "@/components/skeletons";
 
 export function BestSellingSection() {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -51,7 +51,7 @@ export function BestSellingSection() {
           ref={scrollRef}
           className="flex scroll-smooth gap-8 overflow-x-auto scroll-px-6 px-6 py-3 [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-10 md:gap-12 md:px-16 lg:px-20 [&::-webkit-scrollbar]:hidden"
         >
-          {bestSellingProducts.map((product) => (
+          {bestSellingProducts.map((product, index) => (
             <article
               key={product.id}
               className="group/card flex w-[10.5rem] shrink-0 flex-col sm:w-[12rem] md:w-[14.5rem]"
@@ -60,12 +60,15 @@ export function BestSellingSection() {
                 <div className="bestseller-shine-border transition-transform duration-300 group-hover/card:scale-[1.02]">
                   <div className="bestseller-shine-border__inner">
                     <div className="bestseller-shine-border__image aspect-[4/5]">
-                      <Image
+                      <ImageWithSkeleton
                         src={product.image}
                         alt={product.name}
                         fill
                         sizes="(max-width: 640px) 168px, (max-width: 768px) 192px, 232px"
                         className="object-cover transition-transform duration-500 group-hover/card:scale-105"
+                        skeletonClassName="rounded-[calc(1rem-6px)]"
+                        priority={index < 2}
+                        loading={index < 2 ? "eager" : "lazy"}
                       />
 
                       <span className="absolute left-2.5 top-2.5 rounded-full bg-linear-to-r from-[#f5a623] via-[#e8654a] to-[#d94f6a] px-2.5 py-1 text-[0.625rem] font-bold uppercase tracking-wider text-white shadow-sm">
