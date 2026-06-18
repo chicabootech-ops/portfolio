@@ -1,16 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { Camera, CheckCircle2, MapPin, Sparkles, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthFormField, authInputClassName } from "@/components/sections/auth/auth-form-field";
+import { OtpCodeInput } from "@/components/sections/auth/otp-code-input";
 import { useAuth } from "@/components/providers/auth-provider";
-import { completeOnboarding, uploadAvatar } from "@/lib/account/api";
+import { sendPhoneOtp, verifyPhoneOtp } from "@/lib/auth/api";
+import { completeOnboarding, updateProfile, uploadAvatar } from "@/lib/account/api";
 import type { UserPreferences } from "@/types/auth";
 import { cn } from "@/lib/utils";
+
+const PHONE_OTP_COOLDOWN_SECONDS = 60;
 
 const INDIAN_STATES = [
   "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
@@ -38,6 +42,12 @@ export function OnboardingFlow() {
 
   const [name, setName] = useState(user?.name ?? "");
   const [phone, setPhone] = useState(user?.phone ?? "");
+  const [phoneOtp, setPhoneOtp] = useState("");
+  const [phoneVerified, setPhoneVerified] = useState(Boolean(user?.phone_verified && user?.phone));
+  const [phoneOtpSent, setPhoneOtpSent] = useState(false);
+  const [phoneCooldown, setPhoneCooldown] = useState(0);
+  const [isSendingPhoneOtp, setIsSendingPhoneOtp] = useState(false);
+  const [isVerifyingPhone, setIsVerifyingPhone] = useState(false);
   const [address, setAddress] = useState({
     label: "Home" as const,
     name: user?.name ?? "",
@@ -61,7 +71,62 @@ export function OnboardingFlow() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (phoneCooldown <= 0) return;
+    const timer = window.setTimeout(() => setPhoneCooldown((current) => current - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [phoneCooldown]);
+
   if (!user) return null;
+
+  function handlePhoneChange(value: string) {
+    setPhone(value);
+    setPhoneVerified(false);
+    setPhoneOtpSent(false);
+    setPhoneOtp("");
+    setAddress((current) => ({ ...current, phone: value }));
+  }
+
+  async function handleSendPhoneOtp() {
+    if (!phone.trim()) {
+      setError("Enter your phone number first.");
+      return;
+    }
+
+    setError(null);
+    setIsSendingPhoneOtp(true);
+
+    try {
+      await updateProfile({ name: name.trim(), phone: phone.trim() });
+      await sendPhoneOtp(phone.trim());
+      setPhoneOtpSent(true);
+      setPhoneCooldown(PHONE_OTP_COOLDOWN_SECONDS);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not send phone code.");
+    } finally {
+      setIsSendingPhoneOtp(false);
+    }
+  }
+
+  async function handleVerifyPhone() {
+    if (phoneOtp.length !== 6) {
+      setError("Enter the 6-digit code.");
+      return;
+    }
+
+    setError(null);
+    setIsVerifyingPhone(true);
+
+    try {
+      await verifyPhoneOtp(phoneOtp);
+      setPhoneVerified(true);
+      await refreshSession();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not verify phone number.");
+    } finally {
+      setIsVerifyingPhone(false);
+    }
+  }
 
   async function handleFinish() {
     setError(null);
@@ -152,9 +217,71 @@ export function OnboardingFlow() {
                   <input id="onb-name" className={authInputClassName} value={name} onChange={(e) => setName(e.target.value)} />
                 </AuthFormField>
                 <AuthFormField label="Phone number" id="onb-phone">
-                  <input id="onb-phone" className={authInputClassName} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 98765 43210" />
+                  <input
+                    id="onb-phone"
+                    className={authInputClassName}
+                    value={phone}
+                    onChange={(e) => handlePhoneChange(e.target.value)}
+                    placeholder="+91 98765 43210"
+                    disabled={isVerifyingPhone}
+                  />
                 </AuthFormField>
-                <Button type="button" className="h-11 w-full rounded-full" onClick={() => setStep(2)} disabled={!name.trim() || !phone.trim()}>
+
+                {phoneVerified ? (
+                  <p className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground">
+                    <CheckCircle2 size={16} className="text-primary" />
+                    Phone number verified
+                  </p>
+                ) : (
+                  <div className="space-y-3 rounded-xl border border-border/20 bg-secondary/20 p-4">
+                    <p className="text-sm text-muted-foreground">
+                      We&apos;ll send a one-time code to verify your number.
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-10 w-full rounded-full"
+                      onClick={handleSendPhoneOtp}
+                      disabled={isSendingPhoneOtp || !phone.trim() || phoneCooldown > 0}
+                    >
+                      {isSendingPhoneOtp
+                        ? "Sending code..."
+                        : phoneCooldown > 0
+                          ? `Resend code in ${phoneCooldown}s`
+                          : phoneOtpSent
+                            ? "Resend code"
+                            : "Send verification code"}
+                    </Button>
+
+                    {phoneOtpSent ? (
+                      <>
+                        <AuthFormField label="Phone verification code" id="onb-phone-otp">
+                          <OtpCodeInput
+                            id="onb-phone-otp"
+                            value={phoneOtp}
+                            onChange={setPhoneOtp}
+                            disabled={isVerifyingPhone}
+                          />
+                        </AuthFormField>
+                        <Button
+                          type="button"
+                          className="h-10 w-full rounded-full"
+                          onClick={handleVerifyPhone}
+                          disabled={isVerifyingPhone || phoneOtp.length !== 6}
+                        >
+                          {isVerifyingPhone ? "Verifying..." : "Verify phone"}
+                        </Button>
+                      </>
+                    ) : null}
+                  </div>
+                )}
+
+                <Button
+                  type="button"
+                  className="h-11 w-full rounded-full"
+                  onClick={() => setStep(2)}
+                  disabled={!name.trim() || !phone.trim() || !phoneVerified}
+                >
                   Continue
                 </Button>
               </div>

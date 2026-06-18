@@ -4,11 +4,11 @@ import Link from "next/link";
 import { useCallback, useRef } from "react";
 import { ChevronLeft, ChevronRight, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { bestSellingProducts } from "@/data/products";
+import { trendingGiftProducts } from "@/data/products";
 import { formatPrice } from "@/lib/format";
 import { ImageWithSkeleton } from "@/components/skeletons";
 
-export function BestSellingSection() {
+export function TrendingGiftsSection() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = useCallback((direction: "left" | "right") => {
@@ -23,16 +23,16 @@ export function BestSellingSection() {
   }, []);
 
   return (
-    <section className="w-full pt-2 pb-10 md:w-screen md:pt-4 md:pb-12">
+    <section className="w-full py-10 md:w-screen md:py-12">
       <h2 className="mb-6 text-center text-sm font-bold uppercase tracking-[0.2em] text-foreground md:mb-8 md:text-base">
-        — Best Selling —
+        — Trending Gifts —
       </h2>
 
       <div className="relative mx-auto w-full">
         <button
           type="button"
           onClick={() => scroll("left")}
-          aria-label="Scroll products left"
+          aria-label="Scroll trending gifts left"
           className="absolute left-5 top-[calc(50%-2rem)] z-10 hidden -translate-y-1/2 rounded-full bg-white p-2.5 text-foreground/70 shadow-md transition hover:text-foreground md:flex"
         >
           <ChevronLeft size={18} strokeWidth={2} />
@@ -41,7 +41,7 @@ export function BestSellingSection() {
         <button
           type="button"
           onClick={() => scroll("right")}
-          aria-label="Scroll products right"
+          aria-label="Scroll trending gifts right"
           className="absolute right-5 top-[calc(50%-2rem)] z-10 hidden -translate-y-1/2 rounded-full bg-white p-2.5 text-foreground/70 shadow-md transition hover:text-foreground md:flex"
         >
           <ChevronRight size={18} strokeWidth={2} />
@@ -51,7 +51,7 @@ export function BestSellingSection() {
           ref={scrollRef}
           className="flex scroll-smooth gap-8 overflow-x-auto scroll-px-6 px-6 py-3 [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-10 md:gap-12 md:px-16 lg:px-20 [&::-webkit-scrollbar]:hidden"
         >
-          {bestSellingProducts.map((product, index) => (
+          {trendingGiftProducts.map((product) => (
             <article
               key={product.id}
               className="group/card flex w-[10.5rem] shrink-0 flex-col sm:w-[12rem] md:w-[14.5rem]"
@@ -67,12 +67,11 @@ export function BestSellingSection() {
                         sizes="(max-width: 640px) 168px, (max-width: 768px) 192px, 232px"
                         className="object-cover transition-transform duration-500 group-hover/card:scale-105"
                         skeletonClassName="rounded-[calc(1rem-6px)]"
-                        priority={index < 2}
-                        loading={index < 2 ? "eager" : "lazy"}
+                        loading="lazy"
                       />
 
                       <span className="absolute left-2.5 top-2.5 rounded-full bg-linear-to-r from-[#f5a623] via-[#e8654a] to-[#d94f6a] px-2.5 py-1 text-[0.625rem] font-bold uppercase tracking-wider text-white shadow-sm">
-                        Bestseller
+                        Trending
                       </span>
 
                       <button
@@ -109,14 +108,14 @@ export function BestSellingSection() {
         </div>
       </div>
 
-      <div className="mt-10 flex justify-center md:mt-12">
+      <div className="mt-8 flex justify-center md:mt-10">
         <Button
           asChild
           variant="outline"
           size="lg"
           className="h-10 rounded-full border-primary/35 bg-white/60 px-10 text-sm font-semibold tracking-wide text-foreground shadow-sm transition hover:border-primary hover:bg-primary hover:text-primary-foreground"
         >
-          <Link href="/category/trending">View More</Link>
+          <Link href="/category/trending-gifts">View More</Link>
         </Button>
       </div>
     </section>

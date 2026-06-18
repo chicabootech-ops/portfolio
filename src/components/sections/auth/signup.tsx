@@ -46,7 +46,7 @@ export function SignupSection() {
         password,
       });
       await refreshSession();
-      router.push("/onboarding");
+      router.push("/verify-email?next=/onboarding");
       router.refresh();
     } catch (err) {
       setError(

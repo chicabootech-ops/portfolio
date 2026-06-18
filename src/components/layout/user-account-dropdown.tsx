@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -13,6 +14,7 @@ import {
   UserCircle,
 } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
+import { resolveAvatarUrl } from "@/lib/account/avatar-url";
 import type { AuthUser } from "@/types/auth";
 
 const accountMenuItems = [
@@ -30,6 +32,20 @@ function getDisplayName(user: AuthUser) {
   }
 
   return user.email.split("@")[0];
+}
+
+function getInitials(user: AuthUser) {
+  const trimmedName = user.name?.trim();
+  if (trimmedName) {
+    return trimmedName
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+  }
+
+  return user.email.charAt(0).toUpperCase();
 }
 
 type UserAccountDropdownProps = {
@@ -80,6 +96,7 @@ export function UserAccountDropdown({
   }
 
   const displayName = getDisplayName(user);
+  const avatarSrc = resolveAvatarUrl(user.avatar_url);
 
   async function handleLogout() {
     setIsOpen(false);
@@ -103,9 +120,15 @@ export function UserAccountDropdown({
         aria-expanded={isOpen}
         aria-haspopup="menu"
       >
-        <span className="flex h-9 w-9 items-center justify-center rounded-full border border-border/50 bg-white/80 text-sm font-semibold text-primary shadow-sm">
-          {displayName.charAt(0).toUpperCase()}
-        </span>
+        {avatarSrc ? (
+          <span className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-border/50 shadow-sm">
+            <Image src={avatarSrc} alt="" fill className="object-cover" unoptimized />
+          </span>
+        ) : (
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/50 bg-white/80 text-sm font-semibold text-primary shadow-sm">
+            {getInitials(user)}
+          </span>
+        )}
         <span className="hidden text-sm font-medium sm:inline">{displayName}</span>
         <ChevronDown
           size={16}

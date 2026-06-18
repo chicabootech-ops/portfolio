@@ -53,7 +53,7 @@ export function AccountHeader({ user, onEditProfile }: AccountHeaderProps) {
         <div className="flex items-start gap-4">
           {avatarSrc ? (
             <div className="relative size-16 shrink-0 overflow-hidden rounded-2xl shadow-md md:size-20">
-              <Image src={avatarSrc} alt="" fill className="object-cover" unoptimized />
+              <Image src={avatarSrc} alt="" fill className="object-cover" unoptimized loading="eager" priority />
             </div>
           ) : (
             <div

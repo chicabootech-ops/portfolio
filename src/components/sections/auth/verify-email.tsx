@@ -53,7 +53,10 @@ export function VerifyEmailSection() {
       await verifyEmail({ email: email.trim(), otp });
       await refreshSession();
       setMessage("Email verified successfully.");
-      router.push(user?.profile_completed ? "/account" : "/onboarding");
+      const next =
+        searchParams.get("next") ??
+        (user?.profile_completed ? "/account" : "/onboarding");
+      router.push(next);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to verify email.");

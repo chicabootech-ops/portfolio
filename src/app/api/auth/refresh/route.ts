@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { apiConfig } from "@/config/api";
-import { clearAuthCookies, getRefreshTokenFromCookies, setAuthCookies } from "@/lib/auth/cookies";
+import { clearAuthCookies, getRefreshTokenFromCookies } from "@/lib/auth/cookies";
+import { refreshAuthTokens } from "@/lib/auth/server-tokens";
 
 export async function POST() {
   const refreshToken = await getRefreshTokenFromCookies();
@@ -9,24 +9,12 @@ export async function POST() {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const response = await fetch(`${apiConfig.baseUrl}/api/auth/refresh`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refresh_token: refreshToken }),
-    cache: "no-store",
-  });
+  const accessToken = await refreshAuthTokens(refreshToken);
 
-  const data = (await response.json().catch(() => ({}))) as {
-    access_token?: string;
-    refresh_token?: string;
-    error?: string;
-  };
-
-  if (!response.ok || !data.access_token || !data.refresh_token) {
+  if (!accessToken) {
     await clearAuthCookies();
-    return NextResponse.json({ error: data.error ?? "Session expired" }, { status: 401 });
+    return NextResponse.json({ error: "Session expired" }, { status: 401 });
   }
 
-  await setAuthCookies(data.access_token, data.refresh_token);
   return NextResponse.json({ ok: true });
 }

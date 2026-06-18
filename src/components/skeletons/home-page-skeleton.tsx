@@ -6,6 +6,7 @@ export function HomePageSkeleton() {
     <main className="min-h-screen overflow-x-hidden pt-36 md:pt-40 pb-16">
       <ShopByCollectionSkeleton />
       <BestSellingSkeleton />
+      <BestSellingSkeleton />
     </main>
   );
 }

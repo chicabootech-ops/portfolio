@@ -31,6 +31,8 @@ export function LoginSection() {
       const next = searchParams.get("next");
       if (next) {
         router.push(next);
+      } else if (session && !session.is_verified) {
+        router.push("/verify-email");
       } else if (session && !session.profile_completed) {
         router.push("/onboarding");
       } else {

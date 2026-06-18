@@ -16,6 +16,10 @@ export function OnboardingPageClient() {
       router.replace("/login?next=/onboarding");
       return;
     }
+    if (!user.is_verified) {
+      router.replace("/verify-email?next=/onboarding");
+      return;
+    }
     if (user.profile_completed) {
       router.replace("/account");
     }

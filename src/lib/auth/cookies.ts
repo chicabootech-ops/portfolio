@@ -1,8 +1,12 @@
 import { cookies } from "next/headers";
 import { ACCESS_COOKIE, REFRESH_COOKIE } from "./constants";
 
-const ACCESS_MAX_AGE = 15 * 60;
-const REFRESH_MAX_AGE = 7 * 24 * 60 * 60;
+/** Keep in sync with backend ACCESS_TOKEN_EXPIRE_MINUTES (default 15). */
+const ACCESS_MAX_AGE = Number(process.env.AUTH_ACCESS_MAX_AGE_SECONDS ?? 15 * 60);
+/** Keep in sync with backend REFRESH_TOKEN_EXPIRE_DAYS (default 7). */
+const REFRESH_MAX_AGE = Number(
+  process.env.AUTH_REFRESH_MAX_AGE_SECONDS ?? 7 * 24 * 60 * 60
+);
 
 function cookieOptions(maxAge: number) {
   return {

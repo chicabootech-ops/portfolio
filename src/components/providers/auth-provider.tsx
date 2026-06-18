@@ -33,6 +33,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshSession().finally(() => setIsLoading(false));
   }, [refreshSession]);
 
+  // Silently renew access token before it expires (backend default: 15 min).
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    const refreshIntervalMs = 12 * 60 * 1000;
+
+    const intervalId = window.setInterval(() => {
+      void refreshSession();
+    }, refreshIntervalMs);
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === "visible") {
+        void refreshSession();
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [user, refreshSession]);
+
   const logout = useCallback(async () => {
     await logoutSession();
     setUser(null);

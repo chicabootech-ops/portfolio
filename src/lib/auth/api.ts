@@ -106,10 +106,10 @@ export function resendVerificationEmail() {
   );
 }
 
-export function sendPhoneOtp() {
+export function sendPhoneOtp(phone?: string) {
   return postAuthAction(
     "/api/user/phone/send-otp",
-    undefined,
+    phone?.trim() ? { phone: phone.trim() } : undefined,
     "Unable to send phone code."
   );
 }

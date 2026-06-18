@@ -79,7 +79,7 @@ export function AccountPage() {
       <div className="mx-auto w-full max-w-5xl px-4 md:px-6">
         <PageBreadcrumb
           items={[{ label: "Home", href: "/" }, { label: "My Account" }]}
-          className="mb-4"
+          className="mb-4 md:mt-10"
         />
 
         <div className="space-y-5 md:space-y-6">
