@@ -1,12 +1,5 @@
 import { notFound } from "next/navigation";
-
-const categoryTitles: Record<string, string> = {
-  trending: "Trending Flowers",
-  personalized: "Personalized Roses",
-  garlands: "Bespoke Garlands",
-  "gifts-her": "Gifts for Her",
-  corporate: "Corporate Gifting",
-};
+import { categoryTitles } from "@/data/categories";
 
 type CategoryPageProps = {
   params: Promise<{ slug: string }>;

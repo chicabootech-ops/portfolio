@@ -1,19 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Menu, X, Search, User, Heart, ShoppingBag, ChevronDown } from "lucide-react";
+import { shopCategories } from "@/data/categories";
+import { mainNavLinks, siteConfig } from "@/config/site";
 
-// The categories that will go inside the "Shop" dropdown
-const categories = [
-  { label: "Trending Flowers", href: "/category/trending" },
-  { label: "Personalized Roses", href: "/category/personalized" },
-  { label: "Bespoke Garlands", href: "/category/garlands" },
-  { label: "Gifts for Her", href: "/category/gifts-her" },
-  { label: "Corporate Gifting", href: "/category/corporate" },
-];
-
-const Navbar = () => {
+export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
@@ -23,7 +16,7 @@ const Navbar = () => {
         {/* 1. Announcement Bar */}
         <div className="w-full bg-secondary py-1.5 flex justify-center items-center px-4">
           <p className="text-xs font-medium text-secondary-foreground tracking-wide text-center">
-            Crafting bespoke memories. Free delivery on orders over $100. ✨
+            {siteConfig.announcement}
           </p>
         </div>
 
@@ -46,7 +39,7 @@ const Navbar = () => {
           {/* Brand Logo */}
           <Link href="/" className="shrink-0 flex items-center">
             <span className="font-serif italic text-primary text-2xl md:text-3xl font-medium tracking-wide">
-              Chic A Boo
+              {siteConfig.name}
             </span>
           </Link>
 
@@ -54,7 +47,7 @@ const Navbar = () => {
           <div className="hidden md:flex relative w-full max-w-md mx-auto group">
             <input 
               type="text" 
-              placeholder="Find your perfect bouquet..." 
+              placeholder={siteConfig.searchPlaceholder} 
               className="w-full bg-white/60 border border-border/40 rounded-full py-2.5 pl-5 pr-12 text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:bg-white transition-all shadow-sm"
             />
             <button className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-primary text-primary-foreground p-1.5 rounded-full hover:opacity-90 transition-opacity">
@@ -95,7 +88,7 @@ const Navbar = () => {
 
               {/* The Dropdown Menu Box */}
               <div className="absolute top-[calc(100%-4px)] left-1/2 -translate-x-1/2 invisible opacity-0 translate-y-2 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 w-56 bg-white/95 backdrop-blur-xl border border-border/30 shadow-xl rounded-2xl p-2 flex flex-col z-50">
-                {categories.map((category) => (
+                {shopCategories.map((category) => (
                   <Link
                     key={category.href}
                     href={category.href}
@@ -107,21 +100,17 @@ const Navbar = () => {
               </div>
             </div>
 
-            <Link href="/customise" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
-              Customise Your Product
-            </Link>
-            
-            <Link href="/track-order" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
-              Track Order
-            </Link>
-
-            <Link href="/about" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
-              About the Founders
-            </Link>
-
-            <Link href="/contact" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
-              Contact Us
-            </Link>
+            {mainNavLinks
+              .filter((link) => link.href !== "/")
+              .map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
 
           </div>
         </nav>
@@ -142,7 +131,7 @@ const Navbar = () => {
 
           <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-3">Shop</p>
           <div className="flex flex-col gap-1 mb-6 border-l-2 border-primary/20 pl-4">
-            {categories.map((category) => (
+            {shopCategories.map((category) => (
               <Link key={category.href} href={category.href} onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium text-foreground hover:text-primary py-1.5 transition-colors">
                 {category.label}
               </Link>
@@ -151,11 +140,16 @@ const Navbar = () => {
 
           <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-3">Menu</p>
           <div className="flex flex-col gap-1 mb-6">
-            <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium text-foreground hover:text-primary py-2 border-b border-border/10 transition-colors">Home</Link>
-            <Link href="/customise" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium text-foreground hover:text-primary py-2 border-b border-border/10 transition-colors">Customise Your Product</Link>
-            <Link href="/track-order" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium text-foreground hover:text-primary py-2 border-b border-border/10 transition-colors">Track Order</Link>
-            <Link href="/about" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium text-foreground hover:text-primary py-2 border-b border-border/10 transition-colors">About the Founders</Link>
-            <Link href="/contact" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium text-foreground hover:text-primary py-2 border-b border-border/10 transition-colors">Contact Us</Link>
+            {mainNavLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-lg font-medium text-foreground hover:text-primary py-2 border-b border-border/10 transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
           </div>
           
           <div className="flex gap-6 mt-auto pt-6 border-t border-border/30">
@@ -166,6 +160,4 @@ const Navbar = () => {
       )}
     </>
   );
-};
-
-export default Navbar;
+}

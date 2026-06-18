@@ -157,3 +157,64 @@
     @apply font-sans;
   }
 }
+
+/* Bestseller border — matches collection ring palette with animated shine */
+@keyframes bestseller-border-rotate {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.bestseller-shine-border {
+  position: relative;
+  border-radius: 1rem;
+  padding: 3.5px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f5a623, #e8654a, #d94f6a);
+  box-shadow: 0 4px 18px rgba(217, 79, 106, 0.3);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.bestseller-shine-border::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 0;
+  width: 240%;
+  height: 240%;
+  background: conic-gradient(
+    from 0deg,
+    #f5a623 0deg,
+    #e8654a 80deg,
+    #d94f6a 160deg,
+    #ffcc66 200deg,
+    #fff4d6 230deg,
+    #ffcc66 260deg,
+    #e8654a 300deg,
+    #f5a623 360deg
+  );
+  animation: bestseller-border-rotate 3s linear infinite;
+}
+
+.bestseller-shine-border__inner {
+  position: relative;
+  z-index: 1;
+  border-radius: calc(1rem - 3.5px);
+  background: #fff;
+  padding: 2.5px;
+}
+
+.bestseller-shine-border__image {
+  position: relative;
+  overflow: hidden;
+  border-radius: calc(1rem - 6px);
+  background: #fff;
+}
+
+.bestseller-shine-border:hover {
+  box-shadow: 0 6px 28px rgba(217, 79, 106, 0.42);
+}

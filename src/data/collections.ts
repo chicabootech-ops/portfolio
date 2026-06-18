@@ -1,8 +1,4 @@
-export type Collection = {
-  label: string;
-  href: string;
-  image: string;
-};
+import type { Collection } from "@/types/collection";
 
 export const collections: Collection[] = [
   {

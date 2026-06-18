@@ -4,10 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { collections } from "@/data/collections";
 import { cn } from "@/lib/utils";
-import { collections } from "./collections";
 
-export function ShopByCollection() {
+export function ShopByCollectionSection() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = useCallback((direction: "left" | "right") => {
@@ -22,7 +22,7 @@ export function ShopByCollection() {
   }, []);
 
   return (
-    <section className="w-screen border py-10 md:py-12">
+    <section className="w-full py-2 md:w-screen md:border md:border-b-0 md:py-12">
       <h2 className="mb-8 text-center text-sm font-bold uppercase tracking-[0.2em] text-foreground md:text-base">
         &mdash; Shop By Collection &mdash;
       </h2>
@@ -48,35 +48,35 @@ export function ShopByCollection() {
 
         <div
           ref={scrollRef}
-          className="flex scroll-smooth overflow-x-auto px-6 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] md:px-16 lg:px-20 [&::-webkit-scrollbar]:hidden"
+          className="flex scroll-smooth overflow-x-auto px-3 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] sm:px-4 md:px-16 lg:px-20 [&::-webkit-scrollbar]:hidden"
         >
           {collections.map((collection) => (
             <Link
               key={collection.href}
               href={collection.href}
-              className="group flex shrink-0 basis-1/2 flex-col items-center gap-2.5 px-1 sm:basis-1/4 md:basis-[12.5%]"
+              className="group flex w-1/5 shrink-0 flex-col items-center gap-0.5 px-0 sm:w-1/4 sm:gap-2 sm:px-0.5 md:w-[12.5%] md:gap-2.5"
             >
               <div
                 className={cn(
-                  "rounded-full p-[2.5px] transition-shadow duration-300",
-                  "bg-gradient-to-br from-[#f5a623] via-[#e8654a] to-[#d94f6a]",
+                  "rounded-full p-px transition-shadow duration-300 sm:p-[2px] md:p-[2.5px]",
+                  "bg-linear-to-br from-[#f5a623] via-[#e8654a] to-[#d94f6a]",
                   "group-hover:shadow-[0_4px_16px_rgba(217,79,106,0.35)]"
                 )}
               >
-                <div className="rounded-full bg-white p-[2.5px]">
-                  <div className="relative size-[4.5rem] overflow-hidden rounded-full sm:size-[5.25rem]">
+                <div className="rounded-full bg-white p-px sm:p-[2px] md:p-[2.5px]">
+                  <div className="relative size-12 overflow-hidden rounded-full sm:size-18 md:size-21">
                     <Image
                       src={collection.image}
                       alt={collection.label}
                       fill
-                      sizes="(max-width: 640px) 72px, 84px"
+                      sizes="(max-width: 640px) 48px, (max-width: 768px) 72px, 84px"
                       className="object-cover"
                     />
                   </div>
                 </div>
               </div>
 
-              <span className="w-full truncate text-center text-xs font-semibold text-foreground sm:text-[0.8125rem]">
+              <span className="w-full truncate text-center text-[0.5625rem] font-semibold leading-tight text-foreground sm:text-[0.625rem] md:text-[0.8125rem]">
                 {collection.label}
               </span>
             </Link>
