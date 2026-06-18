@@ -11,7 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { AuthUser } from "@/types/auth";
-import { apiConfig } from "@/config/api";
+import { resolveAvatarUrl } from "@/lib/account/avatar-url";
 
 type AccountHeaderProps = {
   user: AuthUser;
@@ -32,12 +32,6 @@ function formatMemberSince(date: string) {
     month: "long",
     year: "numeric",
   }).format(new Date(date));
-}
-
-function resolveAvatarUrl(url: string | null) {
-  if (!url) return null;
-  if (url.startsWith("http")) return url;
-  return `${apiConfig.baseUrl}${url}`;
 }
 
 export function AccountHeader({ user, onEditProfile }: AccountHeaderProps) {

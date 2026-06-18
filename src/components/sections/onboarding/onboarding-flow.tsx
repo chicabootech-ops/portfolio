@@ -74,9 +74,21 @@ export function OnboardingFlow() {
         preferences,
         profile_completed: true,
       });
+
       if (avatarFile) {
-        await uploadAvatar(avatarFile);
+        try {
+          await uploadAvatar(avatarFile);
+        } catch (avatarErr) {
+          console.error(avatarErr);
+          setError(
+            "Profile saved, but photo upload failed. You can add it later from Edit Profile."
+          );
+          await refreshSession();
+          setStep(5);
+          return;
+        }
       }
+
       await refreshSession();
       setStep(5);
     } catch (err) {

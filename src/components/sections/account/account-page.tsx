@@ -99,7 +99,17 @@ export function AccountPage() {
 
           <div className="grid gap-5 lg:grid-cols-2 lg:gap-6">
             <AccountSettingsSection onEditProfile={() => setEditorOpen(true)} />
-            {security ? <SecurityCenter status={security} /> : null}
+            {security ? (
+              <SecurityCenter
+                status={security}
+                phone={profile.phone}
+                onVerified={async () => {
+                  const updatedSecurity = await fetchSecurity();
+                  setSecurity(updatedSecurity);
+                  await refreshSession();
+                }}
+              />
+            ) : null}
           </div>
 
           <div className="grid gap-5 lg:grid-cols-2 lg:gap-6">

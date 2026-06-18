@@ -21,6 +21,10 @@ export function parseBackendError(
   body: BackendErrorBody,
   status: number
 ): string {
+  if (typeof body.error === "string" && body.error.trim()) {
+    return body.error;
+  }
+
   if (status === 422) {
     return SAFE_AUTH_ERRORS[400] ?? getSafeAuthError(status);
   }

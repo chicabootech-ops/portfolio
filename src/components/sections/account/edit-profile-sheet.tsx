@@ -13,9 +13,9 @@ import {
   updateProfile,
   uploadAvatar,
 } from "@/lib/account/api";
-import { apiConfig } from "@/config/api";
 import type { AccountAddress } from "@/types/account";
 import type { AuthUser } from "@/types/auth";
+import { resolveAvatarUrl } from "@/lib/account/avatar-url";
 import { cn } from "@/lib/utils";
 
 type TabId = "profile" | "address" | "password";
@@ -33,12 +33,6 @@ const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: "address", label: "Address", icon: <MapPin size={16} /> },
   { id: "password", label: "Password", icon: <KeyRound size={16} /> },
 ];
-
-function resolveAvatarUrl(url: string | null) {
-  if (!url) return null;
-  if (url.startsWith("http")) return url;
-  return `${apiConfig.baseUrl}${url}`;
-}
 
 export function EditProfileSheet({
   open,
