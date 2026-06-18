@@ -1,5 +1,5 @@
-import { PageSkeleton } from "@/components/skeletons";
+import { AccountPageSkeleton } from "@/components/sections/account";
 
 export default function Loading() {
-  return <PageSkeleton titleWidth="w-40" />;
+  return <AccountPageSkeleton />;
 }

@@ -1,14 +1,11 @@
-import { PageShell } from "@/components/layout";
+import type { Metadata } from "next";
+import { AccountPage } from "@/components/sections/account";
 
-export default function AccountPage() {
-  return (
-    <PageShell
-      breadcrumbs={[
-        { label: "Home", href: "/" },
-        { label: "My Account" },
-      ]}
-      title="My Account"
-      description="Manage your profile, orders, and preferences."
-    />
-  );
+export const metadata: Metadata = {
+  title: "My Account | Chic A Boo",
+  description: "Manage your Chic A Boo profile, orders, addresses, and preferences.",
+};
+
+export default function AccountRoutePage() {
+  return <AccountPage />;
 }
