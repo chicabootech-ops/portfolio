@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { PageShell } from "@/components/layout";
 import { categoryTitles } from "@/data/categories";
 
 type CategoryPageProps = {
@@ -14,13 +15,14 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   }
 
   return (
-    <main className="min-h-screen pt-36 md:pt-40 px-6 md:px-8 pb-16">
-      <h1 className="text-3xl md:text-4xl font-semibold text-foreground">
-        {title}
-      </h1>
-      <p className="mt-4 text-muted-foreground max-w-xl">
-        Browse our curated collection of {title.toLowerCase()}.
-      </p>
-    </main>
+    <PageShell
+      breadcrumbs={[
+        { label: "Home", href: "/" },
+        { label: "Shop", href: "/category/trending" },
+        { label: title },
+      ]}
+      title={title}
+      description={`Browse our curated collection of ${title.toLowerCase()}.`}
+    />
   );
 }

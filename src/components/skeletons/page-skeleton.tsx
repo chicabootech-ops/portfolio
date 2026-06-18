@@ -14,6 +14,7 @@ export function PageSkeleton({
 }: PageSkeletonProps) {
   return (
     <main className="min-h-screen pt-36 md:pt-40 px-6 md:px-8 pb-16">
+      <Skeleton className="mb-6 h-4 w-32 rounded-md" />
       <Skeleton className={cn("h-9 rounded-md md:h-10", titleWidth)} />
       <div className="mt-4 flex max-w-xl flex-col gap-2">
         {Array.from({ length: lines }).map((_, index) => (

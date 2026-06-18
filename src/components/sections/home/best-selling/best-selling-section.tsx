@@ -25,7 +25,7 @@ export function BestSellingSection() {
   return (
     <section className="w-full py-12 md:w-screen md:py-16">
       <h2 className="mb-10 text-center text-sm font-bold uppercase tracking-[0.2em] text-foreground md:mb-12 md:text-base">
-        &mdash; Best Selling &mdash;
+        — Best Selling —
       </h2>
 
       <div className="relative mx-auto w-full">

@@ -57,7 +57,7 @@ export default function Navbar() {
 
           {/* User Utilities */}
           <div className="flex items-center gap-4 md:gap-6 shrink-0">
-            <Link href="/account" className="hidden sm:flex text-foreground hover:text-primary transition-colors">
+            <Link href="/login" className="hidden sm:flex text-foreground hover:text-primary transition-colors">
               <User size={22} strokeWidth={1.5} />
             </Link>
             <Link href="/wishlist" className="hidden sm:flex text-foreground hover:text-primary transition-colors">
@@ -153,7 +153,7 @@ export default function Navbar() {
           </div>
           
           <div className="flex gap-6 mt-auto pt-6 border-t border-border/30">
-            <Link href="/account" className="flex items-center gap-2 text-foreground font-medium"><User size={20} /> Account</Link>
+            <Link href="/login" className="flex items-center gap-2 text-foreground font-medium"><User size={20} /> Sign In</Link>
             <Link href="/wishlist" className="flex items-center gap-2 text-foreground font-medium"><Heart size={20} /> Wishlist</Link>
           </div>
         </div>

@@ -24,7 +24,7 @@ export function ShopByCollectionSection() {
   return (
     <section className="w-full py-2 md:w-screen md:border md:border-b-0 md:py-12">
       <h2 className="mb-8 text-center text-sm font-bold uppercase tracking-[0.2em] text-foreground md:text-base">
-        &mdash; Shop By Collection &mdash;
+        — Shop By Collection —
       </h2>
 
       <div className="relative mx-auto w-full">
