@@ -23,8 +23,9 @@ export async function proxyUserApi(
     body = JSON.stringify(options.body);
   }
 
+  const normalized = path.startsWith("/") ? path : `/${path}`;
   const response = await fetchWithAccessToken(
-    `${apiConfig.baseUrl}/api/user${path}`,
+    `${apiConfig.baseUrl}/api/user${normalized}`,
     {
       method: options.method ?? "GET",
       headers,

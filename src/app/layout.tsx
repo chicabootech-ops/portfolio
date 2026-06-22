@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ConditionalNavbar } from "@/components/layout";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { QueryProvider } from "@/components/providers/query-provider";
 import { siteConfig } from "@/config/site";
 import "./globals.css";
 
@@ -57,8 +58,10 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background">
         <AuthProvider>
-          <ConditionalNavbar />
-          {children}
+          <QueryProvider>
+            <ConditionalNavbar />
+            {children}
+          </QueryProvider>
         </AuthProvider>
       </body>
     </html>
