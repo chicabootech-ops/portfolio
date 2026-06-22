@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/components/providers/auth-provider";
 import { registerUser } from "@/lib/auth/api";
 import { AuthLayout } from "./auth-layout";
 import { AuthFormField, authInputClassName } from "./auth-form-field";
@@ -14,7 +13,6 @@ const MIN_PASSWORD_LENGTH = 10;
 
 export function SignupSection() {
   const router = useRouter();
-  const { refreshSession } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,13 +38,16 @@ export function SignupSection() {
     setIsSubmitting(true);
 
     try {
-      await registerUser({
+      const result = await registerUser({
         name: name.trim(),
         email: email.trim(),
         password,
       });
-      await refreshSession();
-      router.push("/verify-email?next=/onboarding");
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("pending_verify_email", email.trim());
+      }
+      void result;
+      router.push(`/verify-email?email=${encodeURIComponent(email.trim())}&next=/onboarding`);
       router.refresh();
     } catch (err) {
       setError(

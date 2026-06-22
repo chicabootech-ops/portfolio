@@ -89,6 +89,11 @@ export function useAvatarUpload() {
     [mutation]
   );
 
+  const uploadAsync = useCallback(
+    (file: File) => mutation.mutateAsync(file),
+    [mutation]
+  );
+
   const reset = useCallback(() => {
     setError(null);
     setProgress(0);
@@ -97,6 +102,7 @@ export function useAvatarUpload() {
 
   return {
     upload,
+    uploadAsync,
     reset,
     progress,
     isUploading: mutation.isPending,
@@ -104,6 +110,7 @@ export function useAvatarUpload() {
     error: error ?? (mutation.error instanceof Error ? mutation.error.message : null),
   } satisfies AvatarUploadState & {
     upload: (file: File) => void;
+    uploadAsync: (file: File) => Promise<void>;
     reset: () => void;
   };
 }

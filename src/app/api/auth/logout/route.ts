@@ -11,7 +11,7 @@ export async function POST() {
   const refreshToken = await getRefreshTokenFromCookies();
 
   if (accessToken && refreshToken) {
-    await fetch(`${apiConfig.baseUrl}/api/auth/logout`, {
+    await fetch(`${apiConfig.baseUrl}/api/user/auth/logout`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

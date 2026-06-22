@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { apiConfig } from "@/config/api";
-import { setAuthCookies } from "@/lib/auth/cookies";
+import { splitFullName } from "@/lib/auth/map-user";
 import { parseBackendError } from "@/lib/auth/errors";
 import type { SignupCredentials } from "@/types/auth";
 
@@ -16,30 +16,35 @@ export async function POST(request: Request) {
     );
   }
 
-  const response = await fetch(`${apiConfig.baseUrl}${apiConfig.auth.register}`, {
+  const { first_name, last_name } = splitFullName(body.name ?? "");
+
+  const response = await fetch(`${apiConfig.baseUrl}/api/user/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      name: body.name?.trim(),
       email: body.email?.trim(),
       password: body.password,
+      first_name,
+      last_name,
+      accept_terms: true,
     }),
+    cache: "no-store",
   });
 
   const data = (await response.json().catch(() => ({}))) as {
-    access_token?: string;
-    refresh_token?: string;
-    user?: unknown;
+    message?: string;
+    error?: string;
   };
 
-  if (!response.ok || !data.access_token || !data.refresh_token || !data.user) {
+  if (!response.ok) {
     return NextResponse.json(
-      { error: parseBackendError(data as { error?: string }, response.status) },
+      { error: parseBackendError(data, response.status) },
       { status: response.status || 500 }
     );
   }
 
-  await setAuthCookies(data.access_token, data.refresh_token);
-
-  return NextResponse.json({ user: data.user });
+  return NextResponse.json({
+    message: data.message ?? "Registration successful. Check your email for the verification code.",
+    email: body.email?.trim(),
+  });
 }

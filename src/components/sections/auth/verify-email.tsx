@@ -16,7 +16,7 @@ const RESEND_COOLDOWN_SECONDS = 60;
 export function VerifyEmailSection() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, isLoading, refreshSession } = useAuth();
+  const { user, isLoading } = useAuth();
   const [email, setEmail] = useState(searchParams.get("email") ?? "");
   const [otp, setOtp] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -26,10 +26,15 @@ export function VerifyEmailSection() {
   const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
-    if (user?.email) {
-      setEmail(user.email);
-    }
-  }, [user?.email]);
+    const fromQuery = searchParams.get("email");
+    const fromStorage =
+      typeof window !== "undefined"
+        ? sessionStorage.getItem("pending_verify_email")
+        : null;
+    if (fromQuery) setEmail(fromQuery);
+    else if (fromStorage) setEmail(fromStorage);
+    else if (user?.email) setEmail(user.email);
+  }, [searchParams, user?.email]);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -42,6 +47,11 @@ export function VerifyEmailSection() {
     setError(null);
     setMessage(null);
 
+    if (!email.trim()) {
+      setError("Email is required.");
+      return;
+    }
+
     if (otp.length !== 6) {
       setError("Enter the 6-digit code from your email.");
       return;
@@ -51,12 +61,14 @@ export function VerifyEmailSection() {
 
     try {
       await verifyEmail({ email: email.trim(), otp });
-      await refreshSession();
-      setMessage("Email verified successfully.");
-      const next =
-        searchParams.get("next") ??
-        (user?.profile_completed ? "/account" : "/onboarding");
-      router.push(next);
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem("pending_verify_email");
+      }
+      setMessage("Email verified! Sign in to continue.");
+      const next = searchParams.get("next") ?? "/onboarding";
+      router.push(
+        `/login?verified=1&email=${encodeURIComponent(email.trim())}&next=${encodeURIComponent(next)}`
+      );
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to verify email.");
@@ -66,15 +78,15 @@ export function VerifyEmailSection() {
   }
 
   async function handleResend() {
-    if (cooldown > 0 || isResending) return;
+    if (cooldown > 0 || isResending || !email.trim()) return;
 
     setError(null);
     setMessage(null);
     setIsResending(true);
 
     try {
-      await resendVerificationEmail();
-      setMessage("A new verification code has been sent.");
+      await resendVerificationEmail(email.trim());
+      setMessage("If supported, a new code would be sent — use the code from your original email.");
       setCooldown(RESEND_COOLDOWN_SECONDS);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to resend code.");
@@ -87,26 +99,7 @@ export function VerifyEmailSection() {
     return null;
   }
 
-  if (!user) {
-    return (
-      <AuthLayout
-        title="Verify Email"
-        breadcrumbLabel="Verify Email"
-        subtitle="Sign in first, then enter the verification code we sent when you registered."
-        footer={
-          <Link href="/login" className="font-medium text-primary hover:underline underline-offset-4">
-            Sign in
-          </Link>
-        }
-      >
-        <p className="text-sm text-muted-foreground">
-          Verification codes are sent automatically when you create an account.
-        </p>
-      </AuthLayout>
-    );
-  }
-
-  if (user.is_verified) {
+  if (user?.is_verified) {
     return (
       <AuthLayout
         title="Email Verified"
@@ -124,6 +117,28 @@ export function VerifyEmailSection() {
           onClick={() => router.push("/account")}
         >
           Continue
+        </Button>
+      </AuthLayout>
+    );
+  }
+
+  if (!email.trim()) {
+    return (
+      <AuthLayout
+        title="Verify Email"
+        breadcrumbLabel="Verify Email"
+        subtitle="Open the link from signup or enter your email below."
+        footer={
+          <Link href="/login" className="font-medium text-primary hover:underline underline-offset-4">
+            Sign in
+          </Link>
+        }
+      >
+        <p className="text-sm text-muted-foreground">
+          No email on file. Complete signup first, then return here with the code we sent.
+        </p>
+        <Button type="button" asChild className="mt-4 h-11 w-full rounded-full">
+          <Link href="/signup">Create account</Link>
         </Button>
       </AuthLayout>
     );

@@ -7,14 +7,15 @@ import { motion, AnimatePresence } from "motion/react";
 import { Camera, CheckCircle2, MapPin, Sparkles, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthFormField, authInputClassName } from "@/components/sections/auth/auth-form-field";
-import { OtpCodeInput } from "@/components/sections/auth/otp-code-input";
 import { useAuth } from "@/components/providers/auth-provider";
-import { sendPhoneOtp, verifyPhoneOtp } from "@/lib/auth/api";
-import { completeOnboarding, updateProfile, uploadAvatar } from "@/lib/account/api";
-import type { UserPreferences } from "@/types/auth";
+import { useCreateAddress } from "@/hooks/useAddresses";
+import { useAvatarUpload } from "@/hooks/useAvatar";
+import { useUpdateMe } from "@/hooks/useMe";
+import { useUpdatePreferences } from "@/hooks/usePreferences";
+import { mapAccountToCreate, mapShoppingToPreferencesUpdate } from "@/lib/account/adapters";
+import { splitFullName } from "@/lib/auth/map-user";
+import type { ShoppingPreferences } from "@/types/account";
 import { cn } from "@/lib/utils";
-
-const PHONE_OTP_COOLDOWN_SECONDS = 60;
 
 const INDIAN_STATES = [
   "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
@@ -36,18 +37,17 @@ const steps = [
 export function OnboardingFlow() {
   const router = useRouter();
   const { user, refreshSession } = useAuth();
+  const updateMe = useUpdateMe();
+  const createAddress = useCreateAddress();
+  const updatePreferences = useUpdatePreferences();
+  const { uploadAsync, isUploading, progress } = useAvatarUpload();
+
   const [step, setStep] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const [name, setName] = useState(user?.name ?? "");
   const [phone, setPhone] = useState(user?.phone ?? "");
-  const [phoneOtp, setPhoneOtp] = useState("");
-  const [phoneVerified, setPhoneVerified] = useState(Boolean(user?.phone_verified && user?.phone));
-  const [phoneOtpSent, setPhoneOtpSent] = useState(false);
-  const [phoneCooldown, setPhoneCooldown] = useState(0);
-  const [isSendingPhoneOtp, setIsSendingPhoneOtp] = useState(false);
-  const [isVerifyingPhone, setIsVerifyingPhone] = useState(false);
   const [address, setAddress] = useState({
     label: "Home" as const,
     name: user?.name ?? "",
@@ -58,91 +58,51 @@ export function OnboardingFlow() {
     state: "Haryana",
     pincode: "",
   });
-  const [preferences, setPreferences] = useState<UserPreferences>({
+  const [preferences, setPreferences] = useState<ShoppingPreferences>({
     theme: "system",
     language: "en",
-    currency: "USD",
+    currency: "INR",
     marketing_emails: false,
     order_notifications: true,
-    wishlist_alerts: true,
+    wishlist_alerts: false,
     price_alerts: false,
-    back_in_stock_alerts: true,
+    back_in_stock_alerts: false,
   });
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   useEffect(() => {
-    if (phoneCooldown <= 0) return;
-    const timer = window.setTimeout(() => setPhoneCooldown((current) => current - 1), 1000);
-    return () => window.clearTimeout(timer);
-  }, [phoneCooldown]);
+    if (user?.name) setName(user.name);
+    if (user?.phone) setPhone(user.phone);
+  }, [user?.name, user?.phone]);
 
   if (!user) return null;
-
-  function handlePhoneChange(value: string) {
-    setPhone(value);
-    setPhoneVerified(false);
-    setPhoneOtpSent(false);
-    setPhoneOtp("");
-    setAddress((current) => ({ ...current, phone: value }));
-  }
-
-  async function handleSendPhoneOtp() {
-    if (!phone.trim()) {
-      setError("Enter your phone number first.");
-      return;
-    }
-
-    setError(null);
-    setIsSendingPhoneOtp(true);
-
-    try {
-      await updateProfile({ name: name.trim(), phone: phone.trim() });
-      await sendPhoneOtp(phone.trim());
-      setPhoneOtpSent(true);
-      setPhoneCooldown(PHONE_OTP_COOLDOWN_SECONDS);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not send phone code.");
-    } finally {
-      setIsSendingPhoneOtp(false);
-    }
-  }
-
-  async function handleVerifyPhone() {
-    if (phoneOtp.length !== 6) {
-      setError("Enter the 6-digit code.");
-      return;
-    }
-
-    setError(null);
-    setIsVerifyingPhone(true);
-
-    try {
-      await verifyPhoneOtp(phoneOtp);
-      setPhoneVerified(true);
-      await refreshSession();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not verify phone number.");
-    } finally {
-      setIsVerifyingPhone(false);
-    }
-  }
 
   async function handleFinish() {
     setError(null);
     setIsSaving(true);
     try {
-      await completeOnboarding({
-        name: name.trim(),
-        phone: phone.trim(),
-        address: { ...address, name: name.trim(), phone: phone.trim() },
-        preferences,
-        profile_completed: true,
+      const { first_name, last_name } = splitFullName(name);
+      await updateMe.mutateAsync({
+        first_name,
+        last_name: last_name ?? undefined,
+        phone: phone.trim() || undefined,
       });
+
+      await createAddress.mutateAsync(
+        mapAccountToCreate({
+          ...address,
+          name: name.trim(),
+          phone: phone.trim(),
+          is_default: true,
+        })
+      );
+
+      await updatePreferences.mutateAsync(mapShoppingToPreferencesUpdate(preferences));
 
       if (avatarFile) {
         try {
-          await uploadAvatar(avatarFile);
+          await uploadAsync(avatarFile);
         } catch (avatarErr) {
           console.error(avatarErr);
           setError(
@@ -166,14 +126,16 @@ export function OnboardingFlow() {
   function handleAvatarChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      setError("Image must be smaller than 2 MB");
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image must be smaller than 5 MB");
       return;
     }
     setAvatarFile(file);
     setAvatarPreview(URL.createObjectURL(file));
     setError(null);
   }
+
+  const busy = isSaving || isUploading || updateMe.isPending;
 
   return (
     <main className="min-h-screen bg-background px-4 pb-10 pt-28">
@@ -216,71 +178,20 @@ export function OnboardingFlow() {
                 <AuthFormField label="Full name" id="onb-name">
                   <input id="onb-name" className={authInputClassName} value={name} onChange={(e) => setName(e.target.value)} />
                 </AuthFormField>
-                <AuthFormField label="Phone number" id="onb-phone">
+                <AuthFormField label="Phone number (optional)" id="onb-phone">
                   <input
                     id="onb-phone"
                     className={authInputClassName}
                     value={phone}
-                    onChange={(e) => handlePhoneChange(e.target.value)}
+                    onChange={(e) => setPhone(e.target.value)}
                     placeholder="+91 98765 43210"
-                    disabled={isVerifyingPhone}
                   />
                 </AuthFormField>
-
-                {phoneVerified ? (
-                  <p className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground">
-                    <CheckCircle2 size={16} className="text-primary" />
-                    Phone number verified
-                  </p>
-                ) : (
-                  <div className="space-y-3 rounded-xl border border-border/20 bg-secondary/20 p-4">
-                    <p className="text-sm text-muted-foreground">
-                      We&apos;ll send a one-time code to verify your number.
-                    </p>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="h-10 w-full rounded-full"
-                      onClick={handleSendPhoneOtp}
-                      disabled={isSendingPhoneOtp || !phone.trim() || phoneCooldown > 0}
-                    >
-                      {isSendingPhoneOtp
-                        ? "Sending code..."
-                        : phoneCooldown > 0
-                          ? `Resend code in ${phoneCooldown}s`
-                          : phoneOtpSent
-                            ? "Resend code"
-                            : "Send verification code"}
-                    </Button>
-
-                    {phoneOtpSent ? (
-                      <>
-                        <AuthFormField label="Phone verification code" id="onb-phone-otp">
-                          <OtpCodeInput
-                            id="onb-phone-otp"
-                            value={phoneOtp}
-                            onChange={setPhoneOtp}
-                            disabled={isVerifyingPhone}
-                          />
-                        </AuthFormField>
-                        <Button
-                          type="button"
-                          className="h-10 w-full rounded-full"
-                          onClick={handleVerifyPhone}
-                          disabled={isVerifyingPhone || phoneOtp.length !== 6}
-                        >
-                          {isVerifyingPhone ? "Verifying..." : "Verify phone"}
-                        </Button>
-                      </>
-                    ) : null}
-                  </div>
-                )}
-
                 <Button
                   type="button"
                   className="h-11 w-full rounded-full"
                   onClick={() => setStep(2)}
-                  disabled={!name.trim() || !phone.trim() || !phoneVerified}
+                  disabled={!name.trim()}
                 >
                   Continue
                 </Button>
@@ -336,22 +247,21 @@ export function OnboardingFlow() {
                 </AuthFormField>
                 <AuthFormField label="Currency" id="onb-currency">
                   <select id="onb-currency" className={authInputClassName} value={preferences.currency} onChange={(e) => setPreferences({ ...preferences, currency: e.target.value })}>
-                    <option value="USD">USD</option>
                     <option value="INR">INR</option>
+                    <option value="USD">USD</option>
                     <option value="EUR">EUR</option>
                     <option value="GBP">GBP</option>
                   </select>
                 </AuthFormField>
                 {[
                   ["marketing_emails", "Marketing emails"],
-                  ["price_alerts", "Price drop alerts"],
-                  ["wishlist_alerts", "Wishlist alerts"],
+                  ["order_notifications", "Order updates"],
                 ].map(([key, label]) => (
                   <label key={key} className="flex items-center justify-between rounded-xl border border-border/20 px-4 py-3">
                     <span className="text-sm">{label}</span>
                     <input
                       type="checkbox"
-                      checked={preferences[key as keyof UserPreferences] as boolean}
+                      checked={preferences[key as keyof ShoppingPreferences] as boolean}
                       onChange={(e) => setPreferences({ ...preferences, [key]: e.target.checked })}
                     />
                   </label>
@@ -372,12 +282,13 @@ export function OnboardingFlow() {
                   ) : (
                     <Camera className="text-muted-foreground" />
                   )}
-                  <input type="file" accept="image/*" className="sr-only" onChange={handleAvatarChange} />
+                  <input type="file" accept="image/webp,image/jpeg,image/png" className="sr-only" onChange={handleAvatarChange} />
                 </label>
+                {isUploading ? <p className="text-xs text-muted-foreground">Uploading… {progress}%</p> : null}
                 <div className="flex gap-2">
                   <Button type="button" variant="outline" className="h-11 flex-1 rounded-full" onClick={() => setStep(3)}>Back</Button>
-                  <Button type="button" className="h-11 flex-1 rounded-full" onClick={handleFinish} disabled={isSaving}>
-                    {isSaving ? "Saving…" : avatarFile ? "Finish setup" : "Skip & finish"}
+                  <Button type="button" className="h-11 flex-1 rounded-full" onClick={handleFinish} disabled={busy}>
+                    {busy ? "Saving…" : avatarFile ? "Finish setup" : "Skip & finish"}
                   </Button>
                 </div>
               </div>

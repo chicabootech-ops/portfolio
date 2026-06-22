@@ -1,39 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
 import type { ShoppingPreferences } from "@/types/account";
-import { updateProfile } from "@/lib/account/api";
+import { usePreferences, useUpdatePreferences } from "@/hooks/usePreferences";
+import { mapShoppingToPreferencesUpdate, mapUserPreferencesToShopping } from "@/lib/account/adapters";
 import { SectionCard } from "./shared/section-card";
 
-type ShoppingPreferencesSectionProps = {
-  initial: ShoppingPreferences;
-  onSaved?: () => Promise<void>;
+const DEFAULT_PREFS: ShoppingPreferences = {
+  theme: "system",
+  language: "en",
+  currency: "INR",
+  marketing_emails: false,
+  order_notifications: true,
+  wishlist_alerts: false,
+  price_alerts: false,
+  back_in_stock_alerts: false,
 };
 
-export function ShoppingPreferencesSection({
-  initial,
-  onSaved,
-}: ShoppingPreferencesSectionProps) {
-  const [prefs, setPrefs] = useState(initial);
-  const [isSaving, setIsSaving] = useState(false);
+export function ShoppingPreferencesSection() {
+  const { data, isLoading } = usePreferences();
+  const updatePrefs = useUpdatePreferences();
+  const [prefs, setPrefs] = useState<ShoppingPreferences>(DEFAULT_PREFS);
+
+  useEffect(() => {
+    if (data) setPrefs(mapUserPreferencesToShopping(data));
+  }, [data]);
 
   async function savePreferences(next: ShoppingPreferences) {
     setPrefs(next);
-    setIsSaving(true);
-    try {
-      await updateProfile({ preferences: next });
-      await onSaved?.();
-    } finally {
-      setIsSaving(false);
-    }
+    await updatePrefs.mutateAsync(mapShoppingToPreferencesUpdate(next));
   }
 
   const toggle = (key: keyof ShoppingPreferences) => {
     if (typeof prefs[key] !== "boolean") return;
     void savePreferences({ ...prefs, [key]: !prefs[key] });
   };
+
+  if (isLoading) {
+    return (
+      <SectionCard title="Shopping Preferences">
+        <p className="text-sm text-muted-foreground">Loading preferences…</p>
+      </SectionCard>
+    );
+  }
 
   return (
     <SectionCard title="Shopping Preferences">
@@ -79,13 +89,13 @@ export function ShoppingPreferencesSection({
               <Switch
                 checked={prefs[key]}
                 onCheckedChange={() => toggle(key)}
-                disabled={isSaving}
+                disabled={updatePrefs.isPending || key === "wishlist_alerts" || key === "price_alerts" || key === "back_in_stock_alerts"}
                 aria-label={label}
               />
             </div>
           ))}
         </div>
-        {isSaving ? (
+        {updatePrefs.isPending ? (
           <p className="text-xs text-muted-foreground">Saving preferences…</p>
         ) : null}
       </div>

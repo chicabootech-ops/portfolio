@@ -8,15 +8,13 @@ import { Button } from "@/components/ui/button";
 import { resetPassword } from "@/lib/auth/api";
 import { AuthLayout } from "./auth-layout";
 import { AuthFormField, authInputClassName } from "./auth-form-field";
-import { OtpCodeInput } from "./otp-code-input";
 
 const MIN_PASSWORD_LENGTH = 10;
 
 export function ResetPasswordSection() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [email, setEmail] = useState(searchParams.get("email") ?? "");
-  const [otp, setOtp] = useState("");
+  const token = searchParams.get("token") ?? "";
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -26,6 +24,11 @@ export function ResetPasswordSection() {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+
+    if (!token) {
+      setError("Invalid or missing reset link. Request a new one from forgot password.");
+      return;
+    }
 
     if (password.length < MIN_PASSWORD_LENGTH) {
       setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
@@ -37,20 +40,11 @@ export function ResetPasswordSection() {
       return;
     }
 
-    if (otp.length !== 6) {
-      setError("Enter the 6-digit code from your email.");
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
-      await resetPassword({
-        email: email.trim(),
-        otp,
-        new_password: password,
-      });
-      router.push("/login");
+      await resetPassword({ token, new_password: password });
+      router.push("/login?reset=1");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to reset password.");
@@ -63,37 +57,17 @@ export function ResetPasswordSection() {
     <AuthLayout
       title="New Password"
       breadcrumbLabel="Reset Password"
-      subtitle="Enter the code we emailed you and choose a new password."
+      subtitle="Choose a new password for your account."
       footer={
         <>
-          Need a new code?{" "}
-          <Link
-            href={`/forgot-password?email=${encodeURIComponent(email.trim())}`}
-            className="font-medium text-primary hover:underline underline-offset-4"
-          >
-            Resend code
+          Need a new link?{" "}
+          <Link href="/forgot-password" className="font-medium text-primary hover:underline underline-offset-4">
+            Request reset
           </Link>
         </>
       }
     >
       <form onSubmit={handleSubmit} className="space-y-5">
-        <AuthFormField id="reset-email" label="Email">
-          <input
-            id="reset-email"
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="you@example.com"
-            className={authInputClassName}
-          />
-        </AuthFormField>
-
-        <AuthFormField id="reset-otp" label="Reset code">
-          <OtpCodeInput id="reset-otp" value={otp} onChange={setOtp} disabled={isSubmitting} />
-        </AuthFormField>
-
         <AuthFormField id="reset-password" label="New password">
           <div className="relative">
             <input
@@ -141,7 +115,7 @@ export function ResetPasswordSection() {
 
         <Button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || !token}
           className="h-11 w-full rounded-full text-sm font-semibold tracking-wide"
         >
           {isSubmitting ? (

@@ -37,7 +37,7 @@ async function backendFetch(
 export async function refreshAuthTokens(
   refreshToken: string
 ): Promise<string | null> {
-  const response = await backendFetch(`${apiConfig.baseUrl}/api/auth/refresh`, {
+  const response = await backendFetch(`${apiConfig.baseUrl}/api/user/auth/refresh`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refresh_token: refreshToken }),

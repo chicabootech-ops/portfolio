@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import { apiConfig } from "@/config/api";
 import { clearAuthCookies } from "@/lib/auth/cookies";
-import {
-  fetchWithAccessToken,
-  getValidAccessToken,
-} from "@/lib/auth/server-tokens";
+import { mapCurrentUserToAuthUser } from "@/lib/auth/map-user";
+import { fetchWithAccessToken, getValidAccessToken } from "@/lib/auth/server-tokens";
+import type { CurrentUser } from "@/types/user";
 
 export async function GET() {
   const accessToken = await getValidAccessToken();
@@ -14,7 +13,7 @@ export async function GET() {
     return NextResponse.json({ user: null }, { status: 401 });
   }
 
-  const response = await fetchWithAccessToken(`${apiConfig.baseUrl}/api/auth/me`);
+  const response = await fetchWithAccessToken(`${apiConfig.baseUrl}/api/user/me`);
 
   if (!response.ok) {
     if (response.status === 503) {
@@ -28,6 +27,6 @@ export async function GET() {
     return NextResponse.json({ user: null }, { status: 401 });
   }
 
-  const user = await response.json();
-  return NextResponse.json({ user });
+  const me = (await response.json()) as CurrentUser;
+  return NextResponse.json({ user: mapCurrentUserToAuthUser(me) });
 }

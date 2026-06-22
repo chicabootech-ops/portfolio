@@ -2,17 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Camera, KeyRound, MapPin, User } from "lucide-react";
 import { Sheet } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { AuthFormField, authInputClassName } from "@/components/sections/auth/auth-form-field";
-import {
-  changePassword,
-  createAddress,
-  updateAddress,
-  updateProfile,
-  uploadAvatar,
-} from "@/lib/account/api";
+import { useCreateAddress, useUpdateAddress } from "@/hooks/useAddresses";
+import { useAvatarUpload } from "@/hooks/useAvatar";
+import { useUpdateMe } from "@/hooks/useMe";
+import { mapAccountToCreate, mapAccountToUpdate } from "@/lib/account/adapters";
+import { splitFullName } from "@/lib/auth/map-user";
 import type { AccountAddress } from "@/types/account";
 import type { AuthUser } from "@/types/auth";
 import { resolveAvatarUrl } from "@/lib/account/avatar-url";
@@ -42,15 +41,17 @@ export function EditProfileSheet({
   onSaved,
 }: EditProfileSheetProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const updateMe = useUpdateMe();
+  const createAddress = useCreateAddress();
+  const updateAddress = useUpdateAddress();
+  const { uploadAsync, isUploading, progress } = useAvatarUpload();
+
   const [activeTab, setActiveTab] = useState<TabId>("profile");
   const [name, setName] = useState(user.name);
   const [phone, setPhone] = useState(user.phone ?? "");
   const [previewAvatar, setPreviewAvatar] = useState<string | null>(resolveAvatarUrl(user.avatar_url));
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [addressForm, setAddressForm] = useState<AccountAddress | null>(defaultAddress);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -74,8 +75,8 @@ export function EditProfileSheet({
       setError("Please choose a valid image file.");
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      setError("Image must be smaller than 2 MB.");
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image must be smaller than 5 MB.");
       return;
     }
     setAvatarFile(file);
@@ -89,8 +90,15 @@ export function EditProfileSheet({
     setIsSaving(true);
     try {
       if (!name.trim()) throw new Error("Name is required.");
-      await updateProfile({ name: name.trim(), phone: phone.trim() || undefined });
-      if (avatarFile) await uploadAvatar(avatarFile);
+      const { first_name, last_name } = splitFullName(name);
+      await updateMe.mutateAsync({
+        first_name,
+        last_name: last_name ?? undefined,
+        phone: phone.trim() || undefined,
+      });
+      if (avatarFile) {
+        await uploadAsync(avatarFile);
+      }
       await onSaved();
       setSuccess("Profile updated successfully.");
     } catch (err) {
@@ -112,39 +120,17 @@ export function EditProfileSheet({
         is_default: true,
       };
       if (addressForm.id && addressForm.id !== "draft") {
-        await updateAddress(addressForm.id, payload);
+        await updateAddress.mutateAsync({
+          id: addressForm.id,
+          payload: mapAccountToUpdate(payload),
+        });
       } else {
-        await createAddress(payload);
+        await createAddress.mutateAsync(mapAccountToCreate(payload));
       }
       await onSaved();
       setSuccess("Address saved.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save address");
-    } finally {
-      setIsSaving(false);
-    }
-  }
-
-  async function handlePasswordSubmit(event: React.FormEvent) {
-    event.preventDefault();
-    setError(null);
-    if (newPassword.length < 10) {
-      setError("New password must be at least 10 characters.");
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setError("New passwords do not match.");
-      return;
-    }
-    setIsSaving(true);
-    try {
-      await changePassword(currentPassword, newPassword);
-      setSuccess("Password changed. Please sign in again.");
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not change password");
     } finally {
       setIsSaving(false);
     }
@@ -164,6 +150,7 @@ export function EditProfileSheet({
   };
 
   const form = addressForm ?? emptyAddress;
+  const busy = isSaving || isUploading || updateMe.isPending;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange} title="Edit Profile" description="Update your photo, contact details, address, and security.">
@@ -193,12 +180,13 @@ export function EditProfileSheet({
             <button type="button" onClick={() => fileInputRef.current?.click()} className="relative size-24 overflow-hidden rounded-2xl bg-secondary/60">
               {previewAvatar ? <Image src={previewAvatar} alt="" fill className="object-cover" unoptimized /> : <Camera className="absolute inset-0 m-auto text-muted-foreground" />}
             </button>
-            <input ref={fileInputRef} type="file" accept="image/*" className="sr-only" onChange={handleAvatarChange} />
+            <input ref={fileInputRef} type="file" accept="image/webp,image/jpeg,image/png" className="sr-only" onChange={handleAvatarChange} />
+            {isUploading ? <p className="text-xs text-muted-foreground">Uploading… {progress}%</p> : null}
           </div>
           <AuthFormField label="Full name" id="edit-name"><input id="edit-name" className={authInputClassName} value={name} onChange={(e) => setName(e.target.value)} /></AuthFormField>
           <AuthFormField label="Email" id="edit-email"><input id="edit-email" className={authInputClassName} value={user.email} readOnly disabled /></AuthFormField>
           <AuthFormField label="Phone" id="edit-phone"><input id="edit-phone" className={authInputClassName} value={phone} onChange={(e) => setPhone(e.target.value)} /></AuthFormField>
-          <Button type="button" className="h-11 w-full rounded-full" disabled={isSaving} onClick={handleSaveProfile}>{isSaving ? "Saving…" : "Save profile"}</Button>
+          <Button type="button" className="h-11 w-full rounded-full" disabled={busy} onClick={handleSaveProfile}>{busy ? "Saving…" : "Save profile"}</Button>
         </div>
       ) : null}
 
@@ -208,17 +196,17 @@ export function EditProfileSheet({
           <AuthFormField label="City" id="addr-city"><input id="addr-city" className={authInputClassName} value={form.city} onChange={(e) => setAddressForm({ ...form, city: e.target.value })} /></AuthFormField>
           <AuthFormField label="State" id="addr-state"><input id="addr-state" className={authInputClassName} value={form.state} onChange={(e) => setAddressForm({ ...form, state: e.target.value })} /></AuthFormField>
           <AuthFormField label="Pincode" id="addr-pin"><input id="addr-pin" className={authInputClassName} value={form.pincode} onChange={(e) => setAddressForm({ ...form, pincode: e.target.value })} maxLength={6} /></AuthFormField>
-          <Button type="button" className="h-11 w-full rounded-full" disabled={isSaving} onClick={handleSaveAddress}>{isSaving ? "Saving…" : "Save address"}</Button>
+          <Button type="button" className="h-11 w-full rounded-full" disabled={busy} onClick={handleSaveAddress}>{busy ? "Saving…" : "Save address"}</Button>
         </div>
       ) : null}
 
       {activeTab === "password" ? (
-        <form className="space-y-4" onSubmit={handlePasswordSubmit}>
-          <AuthFormField label="Current password" id="cur-pass"><input id="cur-pass" type="password" className={authInputClassName} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} /></AuthFormField>
-          <AuthFormField label="New password" id="new-pass"><input id="new-pass" type="password" className={authInputClassName} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} /></AuthFormField>
-          <AuthFormField label="Confirm password" id="conf-pass"><input id="conf-pass" type="password" className={authInputClassName} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} /></AuthFormField>
-          <Button type="submit" className="h-11 w-full rounded-full" disabled={isSaving}>{isSaving ? "Updating…" : "Change password"}</Button>
-        </form>
+        <div className="space-y-4 rounded-xl border border-border/20 bg-secondary/20 p-4 text-sm text-muted-foreground">
+          <p>To change your password, use the forgot-password flow. We email you a secure reset link.</p>
+          <Button type="button" asChild className="h-11 w-full rounded-full">
+            <Link href="/forgot-password">Reset password</Link>
+          </Button>
+        </div>
       ) : null}
     </Sheet>
   );

@@ -2,15 +2,13 @@ import { proxyAuthApi } from "@/lib/api/auth-proxy";
 
 export async function POST(request: Request) {
   const body = (await request.json()) as {
-    email?: string;
-    otp?: string;
+    token?: string;
     new_password?: string;
   };
 
   return proxyAuthApi("/reset-password", {
     body: {
-      email: body.email?.trim(),
-      otp: body.otp,
+      token: body.token,
       new_password: body.new_password,
     },
   });
