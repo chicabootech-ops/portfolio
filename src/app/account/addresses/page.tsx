@@ -1,15 +1,5 @@
-import { PageShell } from "@/components/layout";
+import { AddressesPageClient } from "@/components/sections/account/addresses-page";
 
 export default function AddressesPage() {
-  return (
-    <PageShell
-      breadcrumbs={[
-        { label: "Home", href: "/" },
-        { label: "My Account", href: "/account" },
-        { label: "Saved Addresses" },
-      ]}
-      title="Saved Addresses"
-      description="Manage delivery addresses for faster checkout."
-    />
-  );
+  return <AddressesPageClient />;
 }
