@@ -5,9 +5,15 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useState,
+  useMemo,
+  useRef,
 } from "react";
-import { fetchSession, logoutSession } from "@/lib/auth/session";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+
+import { userQueryKeys } from "@/hooks/query-keys";
+import { fetchCurrentUser } from "@/lib/user/fetch-current-user";
+import { logoutSession } from "@/lib/auth/session";
+import { mapCurrentUserToAuthUser } from "@/lib/auth/map-user";
 import type { AuthUser } from "@/types/auth";
 
 type AuthContextValue = {
@@ -20,36 +26,81 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+/** Refresh JWT cookies only — does not hit /me (safe at scale). */
+async function refreshAuthTokens(): Promise<boolean> {
+  try {
+    const res = await fetch("/api/auth/refresh", {
+      method: "POST",
+      credentials: "same-origin",
+      cache: "no-store",
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+const TOKEN_REFRESH_MS = 14 * 60 * 1000;
+const VISIBILITY_REFRESH_MS = 10 * 60 * 1000;
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const hiddenAtRef = useRef<number | null>(null);
+
+  const { data: me, isLoading, refetch } = useQuery({
+    queryKey: userQueryKeys.me(),
+    queryFn: fetchCurrentUser,
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+
+  const user = useMemo(
+    () => (me ? mapCurrentUserToAuthUser(me) : null),
+    [me]
+  );
 
   const refreshSession = useCallback(async () => {
-    const sessionUser = await fetchSession();
-    setUser(sessionUser);
-    return sessionUser;
-  }, []);
+    const result = await refetch();
+    return result.data ? mapCurrentUserToAuthUser(result.data) : null;
+  }, [refetch]);
 
+  const setSessionUser = useCallback(
+    (sessionUser: AuthUser | null) => {
+      if (!sessionUser) {
+        queryClient.setQueryData(userQueryKeys.me(), null);
+        return;
+      }
+      void queryClient.invalidateQueries({ queryKey: userQueryKeys.me() });
+    },
+    [queryClient]
+  );
+
+  const logout = useCallback(async () => {
+    await logoutSession();
+    queryClient.setQueryData(userQueryKeys.me(), null);
+    queryClient.removeQueries({ queryKey: userQueryKeys.all });
+  }, [queryClient]);
+
+  // Silent token rotation — no profile refetch, no rate-limit pressure.
   useEffect(() => {
-    refreshSession().finally(() => setIsLoading(false));
-  }, [refreshSession]);
-
-  // Silently renew access token before it expires (backend default: 15 min).
-  useEffect(() => {
-    if (!user) {
-      return;
-    }
-
-    const refreshIntervalMs = 12 * 60 * 1000;
+    if (!user) return;
 
     const intervalId = window.setInterval(() => {
-      void refreshSession();
-    }, refreshIntervalMs);
+      void refreshAuthTokens();
+    }, TOKEN_REFRESH_MS);
 
     function handleVisibilityChange() {
-      if (document.visibilityState === "visible") {
-        void refreshSession();
+      if (document.visibilityState === "hidden") {
+        hiddenAtRef.current = Date.now();
+        return;
       }
+
+      const hiddenAt = hiddenAtRef.current;
+      if (hiddenAt && Date.now() - hiddenAt >= VISIBILITY_REFRESH_MS) {
+        void refreshAuthTokens();
+      }
+      hiddenAtRef.current = null;
     }
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -58,20 +109,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       window.clearInterval(intervalId);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [user, refreshSession]);
-
-  const setSessionUser = useCallback((sessionUser: AuthUser | null) => {
-    setUser(sessionUser);
-  }, []);
-
-  const logout = useCallback(async () => {
-    await logoutSession();
-    setUser(null);
-  }, []);
+  }, [user]);
 
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, refreshSession, setSessionUser, logout }}
+      value={{
+        user,
+        isLoading,
+        refreshSession,
+        setSessionUser,
+        logout,
+      }}
     >
       {children}
     </AuthContext.Provider>

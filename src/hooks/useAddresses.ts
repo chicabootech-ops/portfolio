@@ -6,14 +6,15 @@ import { userQueryKeys } from "@/hooks/query-keys";
 import { userService } from "@/services/user.service";
 import type { AddressCreatePayload, AddressUpdatePayload } from "@/types/user";
 
-export function useAddresses() {
+export function useAddresses(enabled = true) {
   return useQuery({
     queryKey: userQueryKeys.addresses(),
     queryFn: async () => {
       const data = await userService.listAddresses();
       return data.items;
     },
-    staleTime: 30_000,
+    staleTime: 5 * 60_000,
+    enabled,
   });
 }
 

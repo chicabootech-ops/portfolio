@@ -1,18 +1,19 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/components/providers/auth-provider";
+import { userQueryKeys } from "@/hooks/query-keys";
 import { loginUser } from "@/lib/auth/api";
 import { AuthLayout } from "./auth-layout";
 import { AuthFormField, authInputClassName } from "./auth-form-field";
 
 export function LoginSection() {
   const router = useRouter();
-  const { setSessionUser } = useAuth();
+  const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -29,7 +30,7 @@ export function LoginSection() {
         email: email.trim(),
         password,
       });
-      setSessionUser(sessionUser);
+      await queryClient.invalidateQueries({ queryKey: userQueryKeys.me() });
 
       if (!sessionUser.is_verified) {
         router.push(`/verify-email?email=${encodeURIComponent(sessionUser.email)}`);

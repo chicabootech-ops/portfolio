@@ -14,7 +14,7 @@ import {
   UserCircle,
 } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
-import { resolveAvatarUrl } from "@/lib/account/avatar-url";
+import { useDisplayAvatar } from "@/hooks/useDisplayAvatar";
 import type { AuthUser } from "@/types/auth";
 
 const accountMenuItems = [
@@ -96,7 +96,7 @@ export function UserAccountDropdown({
   }
 
   const displayName = getDisplayName(user);
-  const avatarSrc = resolveAvatarUrl(user.avatar_url);
+  const { src: avatarSrc } = useDisplayAvatar(user.avatar_url);
 
   async function handleLogout() {
     setIsOpen(false);

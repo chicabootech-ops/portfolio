@@ -5,22 +5,27 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { userQueryKeys } from "@/hooks/query-keys";
 import { userService } from "@/services/user.service";
 
-export function useSecurityDevices() {
+export function useSecurityDevices(enabled = true) {
   return useQuery({
     queryKey: userQueryKeys.securityDevices(),
     queryFn: async () => {
       const data = await userService.listDevices();
       return data.items;
     },
-    staleTime: 30_000,
+    staleTime: 5 * 60_000,
+    enabled,
   });
 }
 
-export function useLoginHistory(params?: { limit?: number; offset?: number }) {
+export function useLoginHistory(
+  params?: { limit?: number; offset?: number },
+  enabled = true
+) {
   return useQuery({
     queryKey: userQueryKeys.securityLogins(params),
     queryFn: () => userService.listLogins(params),
-    staleTime: 30_000,
+    staleTime: 5 * 60_000,
+    enabled,
   });
 }
 

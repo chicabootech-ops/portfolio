@@ -7,7 +7,9 @@ import { motion, AnimatePresence } from "motion/react";
 import { Camera, CheckCircle2, MapPin, Sparkles, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthFormField, authInputClassName } from "@/components/sections/auth/auth-form-field";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/components/providers/auth-provider";
+import { userQueryKeys } from "@/hooks/query-keys";
 import { useCreateAddress } from "@/hooks/useAddresses";
 import { useAvatarUpload } from "@/hooks/useAvatar";
 import { useUpdateMe } from "@/hooks/useMe";
@@ -36,7 +38,8 @@ const steps = [
 
 export function OnboardingFlow() {
   const router = useRouter();
-  const { user, refreshSession } = useAuth();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const updateMe = useUpdateMe();
   const createAddress = useCreateAddress();
   const updatePreferences = useUpdatePreferences();
@@ -108,13 +111,13 @@ export function OnboardingFlow() {
           setError(
             "Profile saved, but photo upload failed. You can add it later from Edit Profile."
           );
-          await refreshSession();
+          await queryClient.invalidateQueries({ queryKey: userQueryKeys.me() });
           setStep(5);
           return;
         }
       }
 
-      await refreshSession();
+      await queryClient.invalidateQueries({ queryKey: userQueryKeys.me() });
       setStep(5);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not complete onboarding");

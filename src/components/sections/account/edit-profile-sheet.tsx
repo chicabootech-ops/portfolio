@@ -9,12 +9,12 @@ import { Button } from "@/components/ui/button";
 import { AuthFormField, authInputClassName } from "@/components/sections/auth/auth-form-field";
 import { useCreateAddress, useUpdateAddress } from "@/hooks/useAddresses";
 import { useAvatarUpload } from "@/hooks/useAvatar";
+import { useDisplayAvatar } from "@/hooks/useDisplayAvatar";
 import { useUpdateMe } from "@/hooks/useMe";
 import { mapAccountToCreate, mapAccountToUpdate } from "@/lib/account/adapters";
 import { splitFullName } from "@/lib/auth/map-user";
 import type { AccountAddress } from "@/types/account";
 import type { AuthUser } from "@/types/auth";
-import { resolveAvatarUrl } from "@/lib/account/avatar-url";
 import { cn } from "@/lib/utils";
 
 type TabId = "profile" | "address" | "password";
@@ -24,7 +24,6 @@ type EditProfileSheetProps = {
   onOpenChange: (open: boolean) => void;
   user: AuthUser;
   defaultAddress: AccountAddress | null;
-  onSaved: () => Promise<void>;
 };
 
 const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
@@ -38,7 +37,6 @@ export function EditProfileSheet({
   onOpenChange,
   user,
   defaultAddress,
-  onSaved,
 }: EditProfileSheetProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const updateMe = useUpdateMe();
@@ -49,8 +47,9 @@ export function EditProfileSheet({
   const [activeTab, setActiveTab] = useState<TabId>("profile");
   const [name, setName] = useState(user.name);
   const [phone, setPhone] = useState(user.phone ?? "");
-  const [previewAvatar, setPreviewAvatar] = useState<string | null>(resolveAvatarUrl(user.avatar_url));
+  const [blobPreview, setBlobPreview] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const { src: displayAvatar } = useDisplayAvatar(user.avatar_url, blobPreview);
   const [addressForm, setAddressForm] = useState<AccountAddress | null>(defaultAddress);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -60,7 +59,7 @@ export function EditProfileSheet({
     if (!open) return;
     setName(user.name);
     setPhone(user.phone ?? "");
-    setPreviewAvatar(resolveAvatarUrl(user.avatar_url));
+    setBlobPreview(null);
     setAddressForm(defaultAddress);
     setError(null);
     setSuccess(null);
@@ -80,7 +79,7 @@ export function EditProfileSheet({
       return;
     }
     setAvatarFile(file);
-    setPreviewAvatar(URL.createObjectURL(file));
+    setBlobPreview(URL.createObjectURL(file));
     setError(null);
   }
 
@@ -98,8 +97,8 @@ export function EditProfileSheet({
       });
       if (avatarFile) {
         await uploadAsync(avatarFile);
+        setBlobPreview(null);
       }
-      await onSaved();
       setSuccess("Profile updated successfully.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save profile");
@@ -127,7 +126,6 @@ export function EditProfileSheet({
       } else {
         await createAddress.mutateAsync(mapAccountToCreate(payload));
       }
-      await onSaved();
       setSuccess("Address saved.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save address");
@@ -178,24 +176,24 @@ export function EditProfileSheet({
         <div className="space-y-5">
           <div className="flex flex-col items-center gap-3">
             <button type="button" onClick={() => fileInputRef.current?.click()} className="relative size-24 overflow-hidden rounded-2xl bg-secondary/60">
-              {previewAvatar ? <Image src={previewAvatar} alt="" fill className="object-cover" unoptimized /> : <Camera className="absolute inset-0 m-auto text-muted-foreground" />}
+              {displayAvatar ? <Image src={displayAvatar} alt="" fill className="object-cover" unoptimized /> : <Camera className="absolute inset-0 m-auto text-muted-foreground" />}
             </button>
             <input ref={fileInputRef} type="file" accept="image/webp,image/jpeg,image/png" className="sr-only" onChange={handleAvatarChange} />
             {isUploading ? <p className="text-xs text-muted-foreground">Uploading… {progress}%</p> : null}
           </div>
-          <AuthFormField label="Full name" id="edit-name"><input id="edit-name" className={authInputClassName} value={name} onChange={(e) => setName(e.target.value)} /></AuthFormField>
-          <AuthFormField label="Email" id="edit-email"><input id="edit-email" className={authInputClassName} value={user.email} readOnly disabled /></AuthFormField>
-          <AuthFormField label="Phone" id="edit-phone"><input id="edit-phone" className={authInputClassName} value={phone} onChange={(e) => setPhone(e.target.value)} /></AuthFormField>
+          <AuthFormField label="Full name" id="edit-name"><input id="edit-name" className={authInputClassName} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" /></AuthFormField>
+          <AuthFormField label="Email" id="edit-email"><input id="edit-email" className={authInputClassName} value={user.email} readOnly disabled autoComplete="off" /></AuthFormField>
+          <AuthFormField label="Phone" id="edit-phone"><input id="edit-phone" className={authInputClassName} value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" /></AuthFormField>
           <Button type="button" className="h-11 w-full rounded-full" disabled={busy} onClick={handleSaveProfile}>{busy ? "Saving…" : "Save profile"}</Button>
         </div>
       ) : null}
 
       {activeTab === "address" ? (
         <div className="space-y-4">
-          <AuthFormField label="Address line 1" id="addr-line1"><input id="addr-line1" className={authInputClassName} value={form.line1} onChange={(e) => setAddressForm({ ...form, line1: e.target.value })} /></AuthFormField>
-          <AuthFormField label="City" id="addr-city"><input id="addr-city" className={authInputClassName} value={form.city} onChange={(e) => setAddressForm({ ...form, city: e.target.value })} /></AuthFormField>
-          <AuthFormField label="State" id="addr-state"><input id="addr-state" className={authInputClassName} value={form.state} onChange={(e) => setAddressForm({ ...form, state: e.target.value })} /></AuthFormField>
-          <AuthFormField label="Pincode" id="addr-pin"><input id="addr-pin" className={authInputClassName} value={form.pincode} onChange={(e) => setAddressForm({ ...form, pincode: e.target.value })} maxLength={6} /></AuthFormField>
+          <AuthFormField label="Address line 1" id="addr-line1"><input id="addr-line1" className={authInputClassName} value={form.line1} onChange={(e) => setAddressForm({ ...form, line1: e.target.value })} autoComplete="address-line1" /></AuthFormField>
+          <AuthFormField label="City" id="addr-city"><input id="addr-city" className={authInputClassName} value={form.city} onChange={(e) => setAddressForm({ ...form, city: e.target.value })} autoComplete="address-level2" /></AuthFormField>
+          <AuthFormField label="State" id="addr-state"><input id="addr-state" className={authInputClassName} value={form.state} onChange={(e) => setAddressForm({ ...form, state: e.target.value })} autoComplete="address-level1" /></AuthFormField>
+          <AuthFormField label="Pincode" id="addr-pin"><input id="addr-pin" className={authInputClassName} value={form.pincode} onChange={(e) => setAddressForm({ ...form, pincode: e.target.value })} maxLength={6} autoComplete="postal-code" /></AuthFormField>
           <Button type="button" className="h-11 w-full rounded-full" disabled={busy} onClick={handleSaveAddress}>{busy ? "Saving…" : "Save address"}</Button>
         </div>
       ) : null}

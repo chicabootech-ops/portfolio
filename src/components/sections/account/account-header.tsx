@@ -10,8 +10,8 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useDisplayAvatar } from "@/hooks/useDisplayAvatar";
 import type { AuthUser } from "@/types/auth";
-import { resolveAvatarUrl } from "@/lib/account/avatar-url";
 
 type AccountHeaderProps = {
   user: AuthUser;
@@ -35,7 +35,7 @@ function formatMemberSince(date: string) {
 }
 
 export function AccountHeader({ user, onEditProfile }: AccountHeaderProps) {
-  const avatarSrc = resolveAvatarUrl(user.avatar_url);
+  const { src: avatarSrc } = useDisplayAvatar(user.avatar_url);
 
   return (
     <motion.section

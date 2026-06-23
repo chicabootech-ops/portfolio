@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import type { ShoppingPreferences } from "@/types/account";
+import type { UserPreferences } from "@/types/user";
 import { usePreferences, useUpdatePreferences } from "@/hooks/usePreferences";
 import { mapShoppingToPreferencesUpdate, mapUserPreferencesToShopping } from "@/lib/account/adapters";
 import { SectionCard } from "./shared/section-card";
@@ -18,14 +19,20 @@ const DEFAULT_PREFS: ShoppingPreferences = {
   back_in_stock_alerts: false,
 };
 
-export function ShoppingPreferencesSection() {
-  const { data, isLoading } = usePreferences();
+type ShoppingPreferencesSectionProps = {
+  preferences?: UserPreferences | null;
+};
+
+export function ShoppingPreferencesSection({ preferences }: ShoppingPreferencesSectionProps) {
+  const skipFetch = Boolean(preferences);
+  const { data, isLoading } = usePreferences(preferences, !skipFetch);
   const updatePrefs = useUpdatePreferences();
   const [prefs, setPrefs] = useState<ShoppingPreferences>(DEFAULT_PREFS);
 
   useEffect(() => {
-    if (data) setPrefs(mapUserPreferencesToShopping(data));
-  }, [data]);
+    const source = preferences ?? data;
+    if (source) setPrefs(mapUserPreferencesToShopping(source));
+  }, [preferences, data]);
 
   async function savePreferences(next: ShoppingPreferences) {
     setPrefs(next);
@@ -37,7 +44,7 @@ export function ShoppingPreferencesSection() {
     void savePreferences({ ...prefs, [key]: !prefs[key] });
   };
 
-  if (isLoading) {
+  if (!skipFetch && isLoading) {
     return (
       <SectionCard title="Shopping Preferences">
         <p className="text-sm text-muted-foreground">Loading preferences…</p>
@@ -89,7 +96,12 @@ export function ShoppingPreferencesSection() {
               <Switch
                 checked={prefs[key]}
                 onCheckedChange={() => toggle(key)}
-                disabled={updatePrefs.isPending || key === "wishlist_alerts" || key === "price_alerts" || key === "back_in_stock_alerts"}
+                disabled={
+                  updatePrefs.isPending ||
+                  key === "wishlist_alerts" ||
+                  key === "price_alerts" ||
+                  key === "back_in_stock_alerts"
+                }
                 aria-label={label}
               />
             </div>
