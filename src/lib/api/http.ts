@@ -53,16 +53,18 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
   return (await response.json()) as T;
 }
 
-export async function apiUploadToUrl(
-  uploadUrl: string,
+/** POST raw file body to a same-origin API route (e.g. BFF avatar proxy). */
+export async function apiUploadPost(
+  path: string,
   file: Blob,
   contentType: string,
   onProgress?: (percent: number) => void
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("PUT", uploadUrl);
+    xhr.open("POST", path);
     xhr.setRequestHeader("Content-Type", contentType);
+    xhr.withCredentials = true;
 
     if (onProgress) {
       xhr.upload.onprogress = (event) => {
@@ -76,7 +78,57 @@ export async function apiUploadToUrl(
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve();
       } else {
-        reject(new UserApiError(`Upload failed (${xhr.status})`, xhr.status, "upload_failed"));
+        let message = `Upload failed (${xhr.status})`;
+        try {
+          const body = JSON.parse(xhr.responseText) as { error?: string; message?: string };
+          message = body.message ?? body.error ?? message;
+        } catch {
+          // ignore
+        }
+        reject(new UserApiError(message, xhr.status, "upload_failed"));
+      }
+    };
+    xhr.onerror = () => reject(new UserApiError("Upload network error", 0, "upload_network_error"));
+    xhr.send(file);
+  });
+}
+
+export async function apiUploadToUrl(
+  uploadUrl: string,
+  file: Blob,
+  contentType: string,
+  onProgress?: (percent: number) => void
+): Promise<void> {
+  const isSameOrigin = uploadUrl.startsWith("/");
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", uploadUrl);
+    xhr.setRequestHeader("Content-Type", contentType);
+    if (isSameOrigin) {
+      xhr.withCredentials = true;
+    }
+
+    if (onProgress) {
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          onProgress(Math.round((event.loaded / event.total) * 100));
+        }
+      };
+    }
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve();
+      } else {
+        let message = `Upload failed (${xhr.status})`;
+        try {
+          const body = JSON.parse(xhr.responseText) as { error?: string; message?: string };
+          message = body.message ?? body.error ?? message;
+        } catch {
+          // ignore
+        }
+        reject(new UserApiError(message, xhr.status, "upload_failed"));
       }
     };
     xhr.onerror = () => reject(new UserApiError("Upload network error", 0, "upload_network_error"));

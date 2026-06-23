@@ -11,6 +11,8 @@ import { UserAccountDropdown } from "./user-account-dropdown";
 export default function Navbar() {
   const { user, isLoading } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [searchEditable, setSearchEditable] = useState(false);
+  const [mobileSearchEditable, setMobileSearchEditable] = useState(false);
 
   return (
     <>
@@ -47,25 +49,46 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Search Bar */}
-          <div className="hidden md:flex relative w-full max-w-md mx-auto group">
-            <input 
-              type="text" 
-              placeholder={siteConfig.searchPlaceholder} 
+          <form
+            role="search"
+            className="hidden md:flex relative w-full max-w-md mx-auto group"
+            onSubmit={(e) => e.preventDefault()}
+            autoComplete="off"
+          >
+            <input
+              id="site-search"
+              name="q"
+              type="search"
+              enterKeyHint="search"
+              placeholder={siteConfig.searchPlaceholder}
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              readOnly={!searchEditable}
+              onFocus={() => setSearchEditable(true)}
+              data-lpignore="true"
+              data-1p-ignore
+              aria-label="Search products"
               className="w-full bg-white/60 border border-border/40 rounded-full py-2.5 pl-5 pr-12 text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:bg-white transition-all shadow-sm"
             />
-            <button className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-primary text-primary-foreground p-1.5 rounded-full hover:opacity-90 transition-opacity">
+            <button
+              type="submit"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-primary text-primary-foreground p-1.5 rounded-full hover:opacity-90 transition-opacity"
+              aria-label="Search"
+            >
               <Search size={16} />
             </button>
-          </div>
+          </form>
 
           {/* User Utilities */}
           <div className="flex items-center gap-4 md:gap-6 shrink-0">
             {!isLoading && user ? (
-              <UserAccountDropdown className="hidden sm:block" />
+              <UserAccountDropdown />
             ) : (
               <Link
                 href="/login"
-                className="hidden sm:flex text-foreground hover:text-primary transition-colors"
+                className="flex text-foreground hover:text-primary transition-colors"
+                aria-label="Sign in"
               >
                 <User size={22} strokeWidth={1.5} />
               </Link>
@@ -130,14 +153,30 @@ export default function Navbar() {
       {isMobileMenuOpen && (
         <div className="fixed top-[108px] left-0 w-full h-[calc(100vh-108px)] bg-background/95 backdrop-blur-xl border-t border-border/30 z-40 lg:hidden flex flex-col p-6 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-300">
           
-          <div className="relative w-full mb-6 md:hidden">
-            <input 
-              type="text" 
-              placeholder="Search products..." 
+          <form
+            role="search"
+            className="relative w-full mb-6 md:hidden"
+            onSubmit={(e) => e.preventDefault()}
+            autoComplete="off"
+          >
+            <input
+              id="site-search-mobile"
+              name="q"
+              type="search"
+              enterKeyHint="search"
+              placeholder="Search products..."
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              readOnly={!mobileSearchEditable}
+              onFocus={() => setMobileSearchEditable(true)}
+              data-lpignore="true"
+              data-1p-ignore
+              aria-label="Search products"
               className="w-full bg-white border border-border/40 rounded-xl py-3 pl-4 pr-10 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
             />
-            <Search size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          </div>
+            <Search size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden />
+          </form>
 
           <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-3">Shop</p>
           <div className="flex flex-col gap-1 mb-6 border-l-2 border-primary/20 pl-4">

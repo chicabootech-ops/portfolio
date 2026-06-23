@@ -3,7 +3,7 @@
  * BFF proxies to Gateway → UserService.
  */
 
-import { apiFetch, apiUploadToUrl } from "@/lib/api/http";
+import { apiFetch, apiUploadPost, apiUploadToUrl } from "@/lib/api/http";
 import type {
   AddressCreatePayload,
   AddressListResponse,
@@ -80,7 +80,11 @@ export const userService = {
   deleteAvatar: () =>
     apiFetch<{ message: string }>(`${BASE}/me/avatar`, { method: "DELETE" }),
 
-  /** Upload file bytes directly to R2 presigned URL. */
+  /** Upload via same-origin BFF (server PUTs to R2 — no browser CORS/CSP issues). */
+  uploadAvatar: (file: File, onProgress?: (percent: number) => void) =>
+    apiUploadPost(`${BASE}/me/avatar/upload`, file, file.type, onProgress),
+
+  /** @deprecated Use uploadAvatar — direct R2 PUT blocked by CSP/CORS in browser. */
   uploadAvatarToR2: (
     uploadUrl: string,
     file: Blob,

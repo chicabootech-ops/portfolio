@@ -18,8 +18,8 @@ import { resolveAvatarUrl } from "@/lib/account/avatar-url";
 import type { AuthUser } from "@/types/auth";
 
 const accountMenuItems = [
-  { label: "My Profile", href: "/account", icon: UserCircle },
-  { label: "Orders", href: "/account/orders", icon: Package },
+  { label: "Profile", href: "/account", icon: UserCircle },
+  { label: "My Orders", href: "/account/orders", icon: Package },
   { label: "Saved Addresses", href: "/account/addresses", icon: MapPin },
   { label: "Wishlist", href: "/wishlist", icon: Heart },
   { label: "Notifications", href: "/account/notifications", icon: Bell },

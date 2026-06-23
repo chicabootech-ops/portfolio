@@ -42,7 +42,7 @@ export type AvatarUploadState = {
 };
 
 /**
- * End-to-end avatar upload: presigned URL → R2 PUT → confirm → refresh signed GET URL.
+ * End-to-end avatar upload: BFF proxy → R2 PUT (server) → confirm → refresh signed GET URL.
  */
 export function useAvatarUpload() {
   const queryClient = useQueryClient();
@@ -61,14 +61,7 @@ export function useAvatarUpload() {
         throw new UserApiError("Max file size is 5MB", 422, "too_large");
       }
 
-      const contentType = file.type === "image/jpeg" ? "image/jpeg" : file.type;
-      const { upload_url } = await userService.getAvatarUploadUrl({
-        content_type: contentType,
-        content_length: file.size,
-      });
-
-      await userService.uploadAvatarToR2(upload_url, file, contentType, setProgress);
-      await userService.confirmAvatar(file.size);
+      await userService.uploadAvatar(file, setProgress);
     },
     onSuccess: async () => {
       setProgress(100);

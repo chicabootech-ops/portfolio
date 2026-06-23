@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -12,8 +12,7 @@ import { AuthFormField, authInputClassName } from "./auth-form-field";
 
 export function LoginSection() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const { refreshSession } = useAuth();
+  const { setSessionUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -26,17 +25,18 @@ export function LoginSection() {
     setIsSubmitting(true);
 
     try {
-      await loginUser({ email: email.trim(), password });
-      const session = await refreshSession();
-      const next = searchParams.get("next");
-      if (next) {
-        router.push(next);
-      } else if (session && !session.is_verified) {
-        router.push("/verify-email");
-      } else if (session && !session.profile_completed) {
+      const { user: sessionUser } = await loginUser({
+        email: email.trim(),
+        password,
+      });
+      setSessionUser(sessionUser);
+
+      if (!sessionUser.is_verified) {
+        router.push(`/verify-email?email=${encodeURIComponent(sessionUser.email)}`);
+      } else if (!sessionUser.profile_completed) {
         router.push("/onboarding");
       } else {
-        router.push("/account");
+        router.push("/");
       }
       router.refresh();
     } catch (err) {
