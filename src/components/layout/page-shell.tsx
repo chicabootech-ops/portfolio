@@ -19,7 +19,7 @@ export function PageShell({
   return (
     <main
       className={cn(
-        "min-h-screen pt-36 md:pt-40 px-6 md:px-8 pb-16",
+        "min-h-screen pt-19 sm:pt-21 lg:pt-40 px-4 sm:px-6 md:px-8 pb-16",
         className
       )}
     >

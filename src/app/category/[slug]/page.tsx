@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { PageShell } from "@/components/layout";
-import { categoryTitles } from "@/data/categories";
+import { CategoryPageContent } from "@/components/sections/category/category-page-content";
+import { fetchCategoryBySlug } from "@/services/catalog.service";
 
 type CategoryPageProps = {
   params: Promise<{ slug: string }>;
@@ -8,21 +9,33 @@ type CategoryPageProps = {
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { slug } = await params;
-  const title = categoryTitles[slug];
+  const category = await fetchCategoryBySlug(slug);
 
-  if (!title) {
+  if (!category) {
     notFound();
   }
 
+  const breadcrumbs = category.parent
+    ? [
+        { label: "Home", href: "/" },
+        { label: category.parent.name, href: `/category/${category.parent.slug}` },
+        { label: category.name },
+      ]
+    : [
+        { label: "Home", href: "/" },
+        { label: category.name },
+      ];
+
   return (
     <PageShell
-      breadcrumbs={[
-        { label: "Home", href: "/" },
-        { label: "Shop", href: "/category/trending" },
-        { label: title },
-      ]}
-      title={title}
-      description={`Browse our curated collection of ${title.toLowerCase()}.`}
-    />
+      breadcrumbs={breadcrumbs}
+      title={category.name}
+      description={
+        category.description ??
+        `Browse our curated collection of ${category.name.toLowerCase()}.`
+      }
+    >
+      <CategoryPageContent category={category} />
+    </PageShell>
   );
 }

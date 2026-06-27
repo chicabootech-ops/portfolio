@@ -121,18 +121,18 @@ export function UserAccountDropdown({
         aria-haspopup="menu"
       >
         {avatarSrc ? (
-          <span className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-border/50 shadow-sm">
+          <span className="relative h-8 w-8 sm:h-9 sm:w-9 shrink-0 overflow-hidden rounded-full border border-border/50 shadow-sm">
             <Image src={avatarSrc} alt="" fill className="object-cover" unoptimized />
           </span>
         ) : (
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/50 bg-white/80 text-sm font-semibold text-primary shadow-sm">
+          <span className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full border border-border/50 bg-white/80 text-xs sm:text-sm font-semibold text-primary shadow-sm">
             {getInitials(user)}
           </span>
         )}
-        <span className="hidden text-sm font-medium sm:inline">{displayName}</span>
+        <span className="hidden text-sm font-medium lg:inline">{displayName}</span>
         <ChevronDown
           size={16}
-          className={`hidden transition-transform duration-200 sm:inline ${
+          className={`hidden transition-transform duration-200 lg:inline ${
             isOpen ? "rotate-180" : ""
           }`}
         />

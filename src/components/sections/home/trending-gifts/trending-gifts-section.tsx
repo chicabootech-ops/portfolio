@@ -49,12 +49,12 @@ export function TrendingGiftsSection() {
 
         <div
           ref={scrollRef}
-          className="flex scroll-smooth gap-8 overflow-x-auto scroll-px-6 px-6 py-3 [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-10 md:gap-12 md:px-16 lg:px-20 [&::-webkit-scrollbar]:hidden"
+          className="flex scroll-smooth gap-5 overflow-x-auto scroll-px-4 px-4 py-3 [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-8 sm:scroll-px-6 sm:px-6 md:gap-12 md:px-16 lg:px-20 [&::-webkit-scrollbar]:hidden"
         >
           {trendingGiftProducts.map((product) => (
             <article
               key={product.id}
-              className="group/card flex w-[10.5rem] shrink-0 flex-col sm:w-[12rem] md:w-[14.5rem]"
+              className="group/card flex w-[9.5rem] shrink-0 flex-col sm:w-[11rem] md:w-[14.5rem]"
             >
               <Link href={product.href} className="flex flex-col gap-3.5">
                 <div className="bestseller-shine-border transition-transform duration-300 group-hover/card:scale-[1.02]">

@@ -12,3 +12,8 @@ export const userQueryKeys = {
   securityLogins: (params?: { limit?: number; offset?: number }) =>
     [...userQueryKeys.all, "security", "logins", params ?? {}] as const,
 };
+
+export const catalogQueryKeys = {
+  all: ["catalog"] as const,
+  categories: () => [...catalogQueryKeys.all, "categories"] as const,
+};

@@ -2,14 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu, X, Search, User, Heart, ShoppingBag, ChevronDown } from "lucide-react";
+import { Menu, X, Search, User, Heart, ShoppingBag, ChevronDown, Loader2 } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
-import { shopCategories } from "@/data/categories";
+import { useCollections } from "@/hooks/useCollections";
 import { mainNavLinks, siteConfig } from "@/config/site";
 import { UserAccountDropdown } from "./user-account-dropdown";
 
 export default function Navbar() {
   const { user, isLoading } = useAuth();
+  const { data: shopCategories = [], isLoading: categoriesLoading } = useCollections();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchEditable, setSearchEditable] = useState(false);
   const [mobileSearchEditable, setMobileSearchEditable] = useState(false);
@@ -20,38 +21,36 @@ export default function Navbar() {
         
         {/* 1. Announcement Bar */}
         <div className="w-full bg-secondary py-1.5 flex justify-center items-center px-4">
-          <p className="text-xs font-medium text-secondary-foreground tracking-wide text-center">
+          <p className="text-[0.6875rem] font-medium text-secondary-foreground tracking-wide text-center line-clamp-1 sm:text-xs">
             {siteConfig.announcement}
           </p>
         </div>
 
         {/* 2. Main Utility Row (Logo, Search, Icons) */}
-        <div className="max-w-7xl w-full mx-auto px-4 md:px-6 h-20 flex items-center justify-between gap-6">
+        <div className="max-w-7xl w-full mx-auto px-3 sm:px-4 lg:px-6 h-14 sm:h-16 lg:h-20 flex items-center justify-between gap-2 sm:gap-4">
           
           {/* Mobile Menu Toggle */}
-          <div className="flex items-center gap-4 lg:hidden">
+          <div className="flex items-center gap-2 lg:hidden">
             <button 
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="text-foreground hover:text-primary transition-colors p-1"
+              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
             >
-              {isMobileMenuOpen ? <X size={26} /> : <Menu size={26} />}
-            </button>
-            <button className="text-foreground hover:text-primary transition-colors md:hidden">
-              <Search size={20} />
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
 
           {/* Brand Logo */}
-          <Link href="/" className="shrink-0 flex items-center">
-            <span className="font-serif italic text-primary text-2xl md:text-3xl font-medium tracking-wide">
+          <Link href="/" className="shrink-0 flex items-center min-w-0">
+            <span className="font-serif italic text-primary text-xl sm:text-2xl lg:text-3xl font-medium tracking-wide truncate">
               {siteConfig.name}
             </span>
           </Link>
 
-          {/* Desktop Search Bar */}
+          {/* Desktop Search Bar — only when full nav is visible */}
           <form
             role="search"
-            className="hidden md:flex relative w-full max-w-md mx-auto group"
+            className="hidden lg:flex relative w-full max-w-md mx-auto group"
             onSubmit={(e) => e.preventDefault()}
             autoComplete="off"
           >
@@ -81,23 +80,23 @@ export default function Navbar() {
           </form>
 
           {/* User Utilities */}
-          <div className="flex items-center gap-4 md:gap-6 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 lg:gap-6 shrink-0">
             {!isLoading && user ? (
               <UserAccountDropdown />
             ) : (
               <Link
                 href="/login"
-                className="flex text-foreground hover:text-primary transition-colors"
+                className="flex text-foreground hover:text-primary transition-colors p-1"
                 aria-label="Sign in"
               >
-                <User size={22} strokeWidth={1.5} />
+                <User size={20} strokeWidth={1.5} className="sm:w-[22px] sm:h-[22px]" />
               </Link>
             )}
-            <Link href="/wishlist" className="hidden sm:flex text-foreground hover:text-primary transition-colors">
-              <Heart size={22} strokeWidth={1.5} />
+            <Link href="/wishlist" className="hidden sm:flex text-foreground hover:text-primary transition-colors p-1">
+              <Heart size={20} strokeWidth={1.5} className="lg:w-[22px] lg:h-[22px]" />
             </Link>
-            <Link href="/cart" className="relative flex text-foreground hover:text-primary transition-colors group">
-              <ShoppingBag size={22} strokeWidth={1.5} />
+            <Link href="/cart" className="relative flex text-foreground hover:text-primary transition-colors p-1 group">
+              <ShoppingBag size={20} strokeWidth={1.5} className="sm:w-[22px] sm:h-[22px]" />
               <span className="absolute -top-1.5 -right-1.5 bg-primary text-primary-foreground text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
                 2
               </span>
@@ -120,16 +119,22 @@ export default function Navbar() {
               </button>
 
               {/* The Dropdown Menu Box */}
-              <div className="absolute top-[calc(100%-4px)] left-1/2 -translate-x-1/2 invisible opacity-0 translate-y-2 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 w-56 bg-white/95 backdrop-blur-xl border border-border/30 shadow-xl rounded-2xl p-2 flex flex-col z-50">
-                {shopCategories.map((category) => (
-                  <Link
-                    key={category.href}
-                    href={category.href}
-                    className="text-sm font-medium text-foreground/80 hover:text-primary hover:bg-secondary/40 px-4 py-2.5 rounded-xl transition-colors"
-                  >
-                    {category.label}
-                  </Link>
-                ))}
+              <div className="absolute top-[calc(100%-4px)] left-1/2 -translate-x-1/2 invisible opacity-0 translate-y-2 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 w-64 bg-white/95 backdrop-blur-xl border border-border/30 shadow-xl rounded-2xl p-2 flex flex-col z-50 max-h-80 overflow-y-auto">
+                {categoriesLoading ? (
+                  <div className="flex items-center justify-center py-4 text-muted-foreground">
+                    <Loader2 size={18} className="animate-spin" />
+                  </div>
+                ) : (
+                  shopCategories.map((category) => (
+                    <Link
+                      key={category.id}
+                      href={`/category/${category.slug}`}
+                      className="text-sm font-medium text-foreground/80 hover:text-primary hover:bg-secondary/40 px-4 py-2.5 rounded-xl transition-colors"
+                    >
+                      {category.name}
+                    </Link>
+                  ))
+                )}
               </div>
             </div>
 
@@ -151,11 +156,11 @@ export default function Navbar() {
 
       {/* 4. Unified Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="fixed top-[108px] left-0 w-full h-[calc(100vh-108px)] bg-background/95 backdrop-blur-xl border-t border-border/30 z-40 lg:hidden flex flex-col p-6 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="fixed top-19 sm:top-21 left-0 w-full h-[calc(100vh-4.75rem)] sm:h-[calc(100vh-5.25rem)] bg-background/95 backdrop-blur-xl border-t border-border/30 z-40 lg:hidden flex flex-col p-6 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-300">
           
           <form
             role="search"
-            className="relative w-full mb-6 md:hidden"
+            className="relative w-full mb-6"
             onSubmit={(e) => e.preventDefault()}
             autoComplete="off"
           >
@@ -180,11 +185,23 @@ export default function Navbar() {
 
           <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-3">Shop</p>
           <div className="flex flex-col gap-1 mb-6 border-l-2 border-primary/20 pl-4">
-            {shopCategories.map((category) => (
-              <Link key={category.href} href={category.href} onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium text-foreground hover:text-primary py-1.5 transition-colors">
-                {category.label}
-              </Link>
-            ))}
+            {categoriesLoading ? (
+              <div className="flex items-center gap-2 py-2 text-muted-foreground">
+                <Loader2 size={16} className="animate-spin" />
+                <span className="text-sm">Loading…</span>
+              </div>
+            ) : (
+              shopCategories.map((category) => (
+                <Link
+                  key={category.id}
+                  href={`/category/${category.slug}`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="text-lg font-medium text-foreground hover:text-primary py-1.5 transition-colors"
+                >
+                  {category.name}
+                </Link>
+              ))
+            )}
           </div>
 
           <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-3">Menu</p>
