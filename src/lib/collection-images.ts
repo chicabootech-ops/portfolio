@@ -1,5 +1,6 @@
 /** Static storefront images until admin uploads category artwork. */
 export const DEFAULT_COLLECTION_IMAGE = "/collections/tulips.jpeg";
+const LEGACY_PLACEHOLDER_IMAGE = "/collections/premium-blooms.jpg";
 
 const COLLECTION_IMAGES_BY_SLUG: Record<string, string> = {
   "magazines-customisation": DEFAULT_COLLECTION_IMAGE,
@@ -16,6 +17,6 @@ const COLLECTION_IMAGES_BY_SLUG: Record<string, string> = {
 
 export function resolveCollectionImage(slug: string, imageUrl?: string | null): string {
   const trimmed = imageUrl?.trim();
-  if (trimmed) return trimmed;
+  if (trimmed && trimmed !== LEGACY_PLACEHOLDER_IMAGE) return trimmed;
   return COLLECTION_IMAGES_BY_SLUG[slug] ?? DEFAULT_COLLECTION_IMAGE;
 }
