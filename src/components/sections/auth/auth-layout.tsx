@@ -39,7 +39,7 @@ export function AuthLayout({
         <div className="mb-8 text-center">
           <Link
             href="/"
-            className="inline-block font-serif italic text-primary text-2xl md:text-3xl font-medium tracking-wide hover:opacity-80 transition-opacity"
+            className="inline-block font-logo italic text-primary text-2xl md:text-3xl font-medium tracking-wide hover:opacity-80 transition-opacity"
           >
             {siteConfig.name}
           </Link>

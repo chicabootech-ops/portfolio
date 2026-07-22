@@ -12,9 +12,10 @@
   --color-brand-blush: var(--brand-blush);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-serif: "Times New Roman MT", "Times New Roman", Times, serif;
+  --font-heading: "Times New Roman MT", "Times New Roman", Times, serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -156,6 +157,18 @@
   html {
     @apply font-sans;
   }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+  }
+}
+
+.font-logo {
+  font-family: var(--font-heading);
 }
 
 /* Bestseller border — matches collection ring palette with animated shine */
@@ -236,4 +249,136 @@
 
 .group:hover .collection-ring {
   box-shadow: 0 6px 22px rgba(193, 155, 84, 0.32);
+}
+
+/* About the Founders */
+@keyframes founders-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -10px, 0);
+  }
+}
+
+@keyframes founders-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+.founders-page {
+  color: var(--foreground);
+}
+
+.founders-hero {
+  min-height: 70vh;
+}
+
+.founders-hero__wash {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(227, 198, 198, 0.55), transparent 62%),
+    radial-gradient(ellipse 50% 45% at 15% 80%, rgba(193, 155, 84, 0.18), transparent 55%),
+    radial-gradient(ellipse 45% 40% at 90% 70%, rgba(227, 198, 198, 0.35), transparent 50%),
+    linear-gradient(180deg, rgba(245, 239, 235, 0.2), transparent 40%);
+  animation: founders-drift 12s ease-in-out infinite;
+}
+
+.founders-hero__grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background-image: radial-gradient(rgba(148, 106, 43, 0.07) 0.8px, transparent 0.8px);
+  background-size: 14px 14px;
+  pointer-events: none;
+}
+
+.founders-portrait__frame {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  padding: 3px;
+  background: linear-gradient(
+    135deg,
+    #c19b54 0%,
+    #e3c6c6 42%,
+    #c19b54 78%,
+    #f5efeb 100%
+  );
+  background-size: 200% 200%;
+  animation: founders-shimmer 8s ease-in-out infinite alternate;
+}
+
+.founders-portrait__empty {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: calc(1.25rem - 3px);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.92), rgba(245, 239, 235, 0.88)),
+    repeating-linear-gradient(
+      -18deg,
+      transparent,
+      transparent 10px,
+      rgba(193, 155, 84, 0.05) 10px,
+      rgba(193, 155, 84, 0.05) 11px
+    );
+}
+
+.founders-portrait__soon {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-style: italic;
+  color: var(--foreground);
+}
+
+.founders-portrait__hint {
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--muted-foreground) 90%, transparent);
+}
+
+.founders-story__panel {
+  border-radius: 1.5rem;
+  padding: 2rem 1.35rem;
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.72), rgba(245, 239, 235, 0.55)),
+    radial-gradient(ellipse at top right, rgba(227, 198, 198, 0.35), transparent 55%);
+  border: 1px solid color-mix(in oklab, var(--brand-gold) 28%, transparent);
+}
+
+@media (min-width: 640px) {
+  .founders-story__panel {
+    padding: 2.75rem 2.5rem;
+  }
+}
+
+.founders-aside {
+  border-left: 2px solid color-mix(in oklab, var(--brand-gold) 55%, transparent);
+  padding-left: 1rem;
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-style: italic;
+  line-height: 1.45;
+  color: color-mix(in oklab, var(--foreground) 92%, transparent);
+}
+
+.founders-wink {
+  border-radius: 1.5rem;
+  padding: 2rem 1.5rem;
+  background:
+    radial-gradient(ellipse at center, rgba(227, 198, 198, 0.4), transparent 70%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(245, 239, 235, 0.35));
 }

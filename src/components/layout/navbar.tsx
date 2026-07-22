@@ -42,7 +42,7 @@ export default function Navbar() {
 
           {/* Brand Logo */}
           <Link href="/" className="shrink-0 flex items-center min-w-0">
-            <span className="font-serif italic text-primary text-xl sm:text-2xl lg:text-3xl font-medium tracking-wide truncate">
+            <span className="font-logo italic text-primary text-xl sm:text-2xl lg:text-3xl font-medium tracking-wide truncate">
               {siteConfig.name}
             </span>
           </Link>
