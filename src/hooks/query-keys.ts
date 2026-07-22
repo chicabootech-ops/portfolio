@@ -16,4 +16,7 @@ export const userQueryKeys = {
 export const catalogQueryKeys = {
   all: ["catalog"] as const,
   categories: () => [...catalogQueryKeys.all, "categories"] as const,
+  sections: () => [...catalogQueryKeys.all, "sections"] as const,
+  section: (slug: string) => [...catalogQueryKeys.sections(), slug] as const,
+  product: (slug: string) => [...catalogQueryKeys.all, "product", slug] as const,
 };

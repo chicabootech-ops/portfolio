@@ -128,7 +128,7 @@ export default function Navbar() {
                   shopCategories.map((category) => (
                     <Link
                       key={category.id}
-                      href={`/category/${category.slug}`}
+                      href={`/section/${category.slug}`}
                       className="text-sm font-medium text-foreground/80 hover:text-primary hover:bg-secondary/40 px-4 py-2.5 rounded-xl transition-colors"
                     >
                       {category.name}
@@ -194,7 +194,7 @@ export default function Navbar() {
               shopCategories.map((category) => (
                 <Link
                   key={category.id}
-                  href={`/category/${category.slug}`}
+                  href={`/section/${category.slug}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="text-lg font-medium text-foreground hover:text-primary py-1.5 transition-colors"
                 >

@@ -15,10 +15,17 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     notFound();
   }
 
+  const parentHref =
+    category.parent?.kind === "section"
+      ? `/section/${category.parent.slug}`
+      : category.parent
+        ? `/category/${category.parent.slug}`
+        : null;
+
   const breadcrumbs = category.parent
     ? [
         { label: "Home", href: "/" },
-        { label: category.parent.name, href: `/category/${category.parent.slug}` },
+        { label: category.parent.name, href: parentHref! },
         { label: category.name },
       ]
     : [
