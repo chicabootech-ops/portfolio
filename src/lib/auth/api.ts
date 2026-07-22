@@ -21,16 +21,14 @@ export function verifyEmail(payload: { email: string; otp: string }) {
   return authService.verifyEmail(payload);
 }
 
-export async function resendVerificationEmail(email: string) {
-  // UserService has no resend endpoint — re-trigger is not supported; user must use original OTP.
-  void email;
-  throw new Error("Please use the verification code already sent to your email.");
+export function resendVerificationEmail(email: string) {
+  return authService.resendVerification(email);
 }
 
-export function sendPhoneOtp(_phone?: string) {
-  throw new Error("Phone verification is not available yet.");
+export function sendPhoneOtp(phone?: string) {
+  return authService.sendPhoneOtp(phone);
 }
 
-export function verifyPhoneOtp(_otp: string) {
-  throw new Error("Phone verification is not available yet.");
+export function verifyPhoneOtp(otp: string) {
+  return authService.verifyPhoneOtp(otp);
 }

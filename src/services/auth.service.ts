@@ -24,6 +24,12 @@ export const authService = {
       body: payload,
     }),
 
+  resendVerification: (email: string) =>
+    apiFetch<{ message: string }>("/api/auth/resend-verification", {
+      method: "POST",
+      body: { email },
+    }),
+
   forgotPassword: (email: string) =>
     apiFetch<{ message: string }>("/api/auth/forgot-password", {
       method: "POST",
@@ -34,6 +40,18 @@ export const authService = {
     apiFetch<{ message: string }>("/api/auth/reset-password", {
       method: "POST",
       body: payload,
+    }),
+
+  sendPhoneOtp: (phone?: string) =>
+    apiFetch<{ message: string }>("/api/user/phone/send-otp", {
+      method: "POST",
+      body: phone ? { phone } : {},
+    }),
+
+  verifyPhoneOtp: (otp: string) =>
+    apiFetch<{ message: string }>("/api/user/phone/verify", {
+      method: "POST",
+      body: { otp },
     }),
 
   logout: () =>

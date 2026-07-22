@@ -86,7 +86,7 @@ export function VerifyEmailSection() {
 
     try {
       await resendVerificationEmail(email.trim());
-      setMessage("If supported, a new code would be sent — use the code from your original email.");
+      setMessage("A new verification code has been sent to your email.");
       setCooldown(RESEND_COOLDOWN_SECONDS);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to resend code.");
