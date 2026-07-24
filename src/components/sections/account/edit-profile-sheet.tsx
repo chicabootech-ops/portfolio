@@ -7,10 +7,16 @@ import { Camera, KeyRound, MapPin, User } from "lucide-react";
 import { Sheet } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { AuthFormField, authInputClassName } from "@/components/sections/auth/auth-form-field";
+import {
+  normalizeIndianMobile,
+  PhoneOtpVerify,
+} from "@/components/sections/auth/phone-otp-verify";
 import { useCreateAddress, useUpdateAddress } from "@/hooks/useAddresses";
 import { useAvatarUpload } from "@/hooks/useAvatar";
 import { useDisplayAvatar } from "@/hooks/useDisplayAvatar";
 import { useUpdateMe } from "@/hooks/useMe";
+import { useQueryClient } from "@tanstack/react-query";
+import { userQueryKeys } from "@/hooks/query-keys";
 import { mapAccountToCreate, mapAccountToUpdate } from "@/lib/account/adapters";
 import { splitFullName } from "@/lib/auth/map-user";
 import type { AccountAddress } from "@/types/account";
@@ -40,6 +46,7 @@ export function EditProfileSheet({
 }: EditProfileSheetProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const updateMe = useUpdateMe();
+  const queryClient = useQueryClient();
   const createAddress = useCreateAddress();
   const updateAddress = useUpdateAddress();
   const { uploadAsync, isUploading, progress } = useAvatarUpload();
@@ -47,6 +54,7 @@ export function EditProfileSheet({
   const [activeTab, setActiveTab] = useState<TabId>("profile");
   const [name, setName] = useState(user.name);
   const [phone, setPhone] = useState(user.phone ?? "");
+  const [phoneVerifiedInSession, setPhoneVerifiedInSession] = useState(user.phone_verified);
   const [blobPreview, setBlobPreview] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const { src: displayAvatar } = useDisplayAvatar(user.avatar_url, blobPreview);
@@ -59,6 +67,7 @@ export function EditProfileSheet({
     if (!open) return;
     setName(user.name);
     setPhone(user.phone ?? "");
+    setPhoneVerifiedInSession(user.phone_verified);
     setBlobPreview(null);
     setAddressForm(defaultAddress);
     setError(null);
@@ -66,6 +75,15 @@ export function EditProfileSheet({
     setActiveTab("profile");
     setAvatarFile(null);
   }, [open, user, defaultAddress]);
+
+  const originalNational = normalizeIndianMobile(user.phone ?? "");
+  const currentNational = phone.trim() ? normalizeIndianMobile(phone) : null;
+  const phoneUnchanged =
+    (!phone.trim() && !user.phone) ||
+    (originalNational !== null && originalNational === currentNational);
+  const phoneNeedsOtp = Boolean(
+    phone.trim() && !(phoneVerifiedInSession && phoneUnchanged)
+  );
 
   function handleAvatarChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -89,11 +107,18 @@ export function EditProfileSheet({
     setIsSaving(true);
     try {
       if (!name.trim()) throw new Error("Name is required.");
+      if (phone.trim() && !normalizeIndianMobile(phone)) {
+        throw new Error("Enter a valid 10-digit Indian mobile, or clear the field.");
+      }
+      if (phoneNeedsOtp) {
+        throw new Error("Verify your phone with SMS OTP before saving, or clear the number.");
+      }
       const { first_name, last_name } = splitFullName(name);
       await updateMe.mutateAsync({
         first_name,
         last_name: last_name ?? undefined,
-        phone: phone.trim() || undefined,
+        // Phone is persisted/verified via OTP flow; only clear when emptied.
+        ...(phone.trim() ? {} : { phone: undefined }),
       });
       if (avatarFile) {
         await uploadAsync(avatarFile);
@@ -183,7 +208,47 @@ export function EditProfileSheet({
           </div>
           <AuthFormField label="Full name" id="edit-name"><input id="edit-name" className={authInputClassName} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" /></AuthFormField>
           <AuthFormField label="Email" id="edit-email"><input id="edit-email" className={authInputClassName} value={user.email} readOnly disabled autoComplete="off" /></AuthFormField>
-          <AuthFormField label="Phone" id="edit-phone"><input id="edit-phone" className={authInputClassName} value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" /></AuthFormField>
+          {phoneNeedsOtp || !phone.trim() ? (
+            <PhoneOtpVerify
+              phone={phone}
+              onPhoneChange={(value) => {
+                setPhone(value);
+                setPhoneVerifiedInSession(false);
+                setError(null);
+                setSuccess(null);
+              }}
+              optionalHint
+              onVerified={async () => {
+                setPhoneVerifiedInSession(true);
+                setSuccess("Phone verified.");
+                await queryClient.invalidateQueries({ queryKey: userQueryKeys.me() });
+              }}
+            />
+          ) : (
+            <div className="space-y-2">
+              <AuthFormField label="Phone" id="edit-phone">
+                <input
+                  id="edit-phone"
+                  className={authInputClassName}
+                  value={phone}
+                  readOnly
+                  autoComplete="tel"
+                />
+              </AuthFormField>
+              <p className="text-xs text-muted-foreground">Verified. Clear and re-enter to change number.</p>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10 rounded-full"
+                onClick={() => {
+                  setPhone("");
+                  setPhoneVerifiedInSession(false);
+                }}
+              >
+                Change phone
+              </Button>
+            </div>
+          )}
           <Button type="button" className="h-11 w-full rounded-full" disabled={busy} onClick={handleSaveProfile}>{busy ? "Saving…" : "Save profile"}</Button>
         </div>
       ) : null}

@@ -6,6 +6,10 @@ import { useRouter } from "next/navigation";
 import { Camera, CheckCircle2, MapPin, Sparkles, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthFormField, authInputClassName } from "@/components/sections/auth/auth-form-field";
+import {
+  normalizeIndianMobile,
+  PhoneOtpVerify,
+} from "@/components/sections/auth/phone-otp-verify";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/components/providers/auth-provider";
 import { userQueryKeys } from "@/hooks/query-keys";
@@ -47,6 +51,7 @@ export function OnboardingFlow() {
   const [step, setStep] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [phoneVerifiedInSession, setPhoneVerifiedInSession] = useState(false);
 
   const [name, setName] = useState(user?.name ?? "");
   const [phone, setPhone] = useState(user?.phone ?? "");
@@ -76,9 +81,62 @@ export function OnboardingFlow() {
   useEffect(() => {
     if (user?.name) setName(user.name);
     if (user?.phone) setPhone(user.phone);
-  }, [user?.name, user?.phone]);
+    if (user?.phone_verified) setPhoneVerifiedInSession(true);
+  }, [user?.name, user?.phone, user?.phone_verified]);
 
   if (!user) return null;
+
+  const phoneDigits = phone.trim();
+  const phoneAlreadyOk = Boolean(user.phone_verified || phoneVerifiedInSession);
+
+  async function saveNameOnly() {
+    const { first_name, last_name } = splitFullName(name);
+    await updateMe.mutateAsync({
+      first_name,
+      last_name: last_name ?? undefined,
+    });
+  }
+
+  async function handlePersonalContinue() {
+    setError(null);
+    if (!name.trim()) {
+      setError("Name is required.");
+      return;
+    }
+
+    if (!phoneDigits) {
+      setIsSaving(true);
+      try {
+        await saveNameOnly();
+        setStep(2);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not save profile");
+      } finally {
+        setIsSaving(false);
+      }
+      return;
+    }
+
+    if (!normalizeIndianMobile(phone)) {
+      setError("Enter a valid 10-digit Indian mobile, or leave phone blank.");
+      return;
+    }
+
+    if (!phoneAlreadyOk) {
+      setError("Verify your phone with the SMS OTP first, or clear the number to skip.");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await saveNameOnly();
+      setStep(2);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save profile");
+    } finally {
+      setIsSaving(false);
+    }
+  }
 
   async function handleFinish() {
     setError(null);
@@ -170,140 +228,273 @@ export function OnboardingFlow() {
           key={step}
           className="fade-up-sm rounded-2xl border border-border/30 bg-white p-5 shadow-md"
         >
-            {step === 1 ? (
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold">Personal information</h2>
-                <AuthFormField label="Full name" id="onb-name">
-                  <input id="onb-name" className={authInputClassName} value={name} onChange={(e) => setName(e.target.value)} />
-                </AuthFormField>
-                <AuthFormField label="Phone number (optional)" id="onb-phone">
+          {step === 1 ? (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold">Personal information</h2>
+              <AuthFormField label="Full name" id="onb-name">
+                <input
+                  id="onb-name"
+                  className={authInputClassName}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </AuthFormField>
+
+              {phoneAlreadyOk && phoneDigits ? (
+                <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm">
+                  Phone verified: {phone}
+                </div>
+              ) : (
+                <PhoneOtpVerify
+                  phone={phone}
+                  onPhoneChange={(value) => {
+                    setPhone(value);
+                    setPhoneVerifiedInSession(false);
+                    setError(null);
+                  }}
+                  optionalHint
+                  onVerified={async () => {
+                    setPhoneVerifiedInSession(true);
+                    setError(null);
+                    await queryClient.invalidateQueries({ queryKey: userQueryKeys.me() });
+                  }}
+                />
+              )}
+
+              <Button
+                type="button"
+                className="h-11 w-full rounded-full"
+                onClick={handlePersonalContinue}
+                disabled={!name.trim() || busy}
+              >
+                {busy ? "Saving…" : "Continue"}
+              </Button>
+              {phoneDigits && !phoneAlreadyOk ? (
+                <p className="text-center text-xs text-muted-foreground">
+                  Verify with OTP to use this number, or clear the field to skip.
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
+          {step === 2 ? (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold">Default delivery address</h2>
+              <AuthFormField label="Label" id="onb-label">
+                <select
+                  id="onb-label"
+                  className={authInputClassName}
+                  value={address.label}
+                  onChange={(e) =>
+                    setAddress({ ...address, label: e.target.value as "Home" })
+                  }
+                >
+                  <option value="Home">Home</option>
+                  <option value="Work">Work</option>
+                  <option value="Other">Other</option>
+                </select>
+              </AuthFormField>
+              <AuthFormField label="Address line 1" id="onb-line1">
+                <input
+                  id="onb-line1"
+                  className={authInputClassName}
+                  value={address.line1}
+                  onChange={(e) => setAddress({ ...address, line1: e.target.value })}
+                />
+              </AuthFormField>
+              <AuthFormField label="Address line 2" id="onb-line2">
+                <input
+                  id="onb-line2"
+                  className={authInputClassName}
+                  value={address.line2}
+                  onChange={(e) => setAddress({ ...address, line2: e.target.value })}
+                />
+              </AuthFormField>
+              <div className="grid grid-cols-2 gap-3">
+                <AuthFormField label="City" id="onb-city">
                   <input
-                    id="onb-phone"
+                    id="onb-city"
                     className={authInputClassName}
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+91 98765 43210"
+                    value={address.city}
+                    onChange={(e) => setAddress({ ...address, city: e.target.value })}
                   />
                 </AuthFormField>
+                <AuthFormField label="Pincode" id="onb-pin">
+                  <input
+                    id="onb-pin"
+                    className={authInputClassName}
+                    value={address.pincode}
+                    onChange={(e) => setAddress({ ...address, pincode: e.target.value })}
+                    maxLength={6}
+                  />
+                </AuthFormField>
+              </div>
+              <AuthFormField label="State" id="onb-state">
+                <select
+                  id="onb-state"
+                  className={authInputClassName}
+                  value={address.state}
+                  onChange={(e) => setAddress({ ...address, state: e.target.value })}
+                >
+                  {INDIAN_STATES.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </AuthFormField>
+              <div className="flex gap-2">
                 <Button
                   type="button"
-                  className="h-11 w-full rounded-full"
-                  onClick={() => setStep(2)}
-                  disabled={!name.trim()}
+                  variant="outline"
+                  className="h-11 flex-1 rounded-full"
+                  onClick={() => setStep(1)}
+                >
+                  Back
+                </Button>
+                <Button
+                  type="button"
+                  className="h-11 flex-1 rounded-full"
+                  onClick={() => setStep(3)}
+                  disabled={!address.line1 || !address.city || !address.pincode}
                 >
                   Continue
                 </Button>
               </div>
-            ) : null}
+            </div>
+          ) : null}
 
-            {step === 2 ? (
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold">Default delivery address</h2>
-                <AuthFormField label="Label" id="onb-label">
-                  <select id="onb-label" className={authInputClassName} value={address.label} onChange={(e) => setAddress({ ...address, label: e.target.value as "Home" })}>
-                    <option value="Home">Home</option>
-                    <option value="Work">Work</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </AuthFormField>
-                <AuthFormField label="Address line 1" id="onb-line1">
-                  <input id="onb-line1" className={authInputClassName} value={address.line1} onChange={(e) => setAddress({ ...address, line1: e.target.value })} />
-                </AuthFormField>
-                <AuthFormField label="Address line 2" id="onb-line2">
-                  <input id="onb-line2" className={authInputClassName} value={address.line2} onChange={(e) => setAddress({ ...address, line2: e.target.value })} />
-                </AuthFormField>
-                <div className="grid grid-cols-2 gap-3">
-                  <AuthFormField label="City" id="onb-city">
-                    <input id="onb-city" className={authInputClassName} value={address.city} onChange={(e) => setAddress({ ...address, city: e.target.value })} />
-                  </AuthFormField>
-                  <AuthFormField label="Pincode" id="onb-pin">
-                    <input id="onb-pin" className={authInputClassName} value={address.pincode} onChange={(e) => setAddress({ ...address, pincode: e.target.value })} maxLength={6} />
-                  </AuthFormField>
-                </div>
-                <AuthFormField label="State" id="onb-state">
-                  <select id="onb-state" className={authInputClassName} value={address.state} onChange={(e) => setAddress({ ...address, state: e.target.value })}>
-                    {INDIAN_STATES.map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                </AuthFormField>
-                <div className="flex gap-2">
-                  <Button type="button" variant="outline" className="h-11 flex-1 rounded-full" onClick={() => setStep(1)}>Back</Button>
-                  <Button type="button" className="h-11 flex-1 rounded-full" onClick={() => setStep(3)} disabled={!address.line1 || !address.city || !address.pincode}>Continue</Button>
-                </div>
-              </div>
-            ) : null}
-
-            {step === 3 ? (
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold">Shopping preferences</h2>
-                <AuthFormField label="Language" id="onb-lang">
-                  <select id="onb-lang" className={authInputClassName} value={preferences.language} onChange={(e) => setPreferences({ ...preferences, language: e.target.value })}>
-                    <option value="en">English</option>
-                    <option value="hi">Hindi</option>
-                  </select>
-                </AuthFormField>
-                <AuthFormField label="Currency" id="onb-currency">
-                  <select
-                    id="onb-currency"
-                    className={authInputClassName}
-                    value={preferences.currency}
-                    onChange={(e) => setPreferences({ ...preferences, currency: e.target.value })}
-                  >
-                    <option value="INR">INR</option>
-                  </select>
-                </AuthFormField>
-                {[
+          {step === 3 ? (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold">Shopping preferences</h2>
+              <AuthFormField label="Language" id="onb-lang">
+                <select
+                  id="onb-lang"
+                  className={authInputClassName}
+                  value={preferences.language}
+                  onChange={(e) =>
+                    setPreferences({ ...preferences, language: e.target.value })
+                  }
+                >
+                  <option value="en">English</option>
+                  <option value="hi">Hindi</option>
+                </select>
+              </AuthFormField>
+              <AuthFormField label="Currency" id="onb-currency">
+                <select
+                  id="onb-currency"
+                  className={authInputClassName}
+                  value={preferences.currency}
+                  onChange={(e) =>
+                    setPreferences({ ...preferences, currency: e.target.value })
+                  }
+                >
+                  <option value="INR">INR</option>
+                </select>
+              </AuthFormField>
+              {(
+                [
                   ["marketing_emails", "Marketing emails"],
                   ["order_notifications", "Order updates"],
-                ].map(([key, label]) => (
-                  <label key={key} className="flex items-center justify-between rounded-xl border border-border/20 px-4 py-3">
-                    <span className="text-sm">{label}</span>
-                    <input
-                      type="checkbox"
-                      checked={preferences[key as keyof ShoppingPreferences] as boolean}
-                      onChange={(e) => setPreferences({ ...preferences, [key]: e.target.checked })}
-                    />
-                  </label>
-                ))}
-                <div className="flex gap-2">
-                  <Button type="button" variant="outline" className="h-11 flex-1 rounded-full" onClick={() => setStep(2)}>Back</Button>
-                  <Button type="button" className="h-11 flex-1 rounded-full" onClick={() => setStep(4)}>Continue</Button>
-                </div>
-              </div>
-            ) : null}
-
-            {step === 4 ? (
-              <div className="space-y-4 text-center">
-                <h2 className="text-lg font-semibold">Profile photo (optional)</h2>
-                <label className="mx-auto flex size-28 cursor-pointer items-center justify-center overflow-hidden rounded-2xl bg-secondary/60">
-                  {avatarPreview ? (
-                    <Image src={avatarPreview} alt="" width={112} height={112} className="size-full object-cover" unoptimized />
-                  ) : (
-                    <Camera className="text-muted-foreground" />
-                  )}
-                  <input type="file" accept="image/webp,image/jpeg,image/png" className="sr-only" onChange={handleAvatarChange} />
+                ] as const
+              ).map(([key, label]) => (
+                <label
+                  key={key}
+                  className="flex items-center justify-between rounded-xl border border-border/20 px-4 py-3"
+                >
+                  <span className="text-sm">{label}</span>
+                  <input
+                    type="checkbox"
+                    checked={preferences[key]}
+                    onChange={(e) =>
+                      setPreferences({ ...preferences, [key]: e.target.checked })
+                    }
+                  />
                 </label>
-                {isUploading ? <p className="text-xs text-muted-foreground">Uploading… {progress}%</p> : null}
-                <div className="flex gap-2">
-                  <Button type="button" variant="outline" className="h-11 flex-1 rounded-full" onClick={() => setStep(3)}>Back</Button>
-                  <Button type="button" className="h-11 flex-1 rounded-full" onClick={handleFinish} disabled={busy}>
-                    {busy ? "Saving…" : avatarFile ? "Finish setup" : "Skip & finish"}
-                  </Button>
-                </div>
-              </div>
-            ) : null}
-
-            {step === 5 ? (
-              <div className="space-y-4 py-6 text-center">
-                <CheckCircle2 className="mx-auto text-primary" size={48} />
-                <h2 className="text-xl font-semibold">You&apos;re all set!</h2>
-                <p className="text-sm text-muted-foreground">Your Chic A Boo account is ready for bespoke memories.</p>
-                <Button type="button" className="h-11 w-full rounded-full" onClick={() => router.replace("/account")}>
-                  Go to My Account
+              ))}
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-11 flex-1 rounded-full"
+                  onClick={() => setStep(2)}
+                >
+                  Back
+                </Button>
+                <Button
+                  type="button"
+                  className="h-11 flex-1 rounded-full"
+                  onClick={() => setStep(4)}
+                >
+                  Continue
                 </Button>
               </div>
-            ) : null}
+            </div>
+          ) : null}
+
+          {step === 4 ? (
+            <div className="space-y-4 text-center">
+              <h2 className="text-lg font-semibold">Profile photo (optional)</h2>
+              <label className="mx-auto flex size-28 cursor-pointer items-center justify-center overflow-hidden rounded-2xl bg-secondary/60">
+                {avatarPreview ? (
+                  <Image
+                    src={avatarPreview}
+                    alt=""
+                    width={112}
+                    height={112}
+                    className="size-full object-cover"
+                    unoptimized
+                  />
+                ) : (
+                  <Camera className="text-muted-foreground" />
+                )}
+                <input
+                  type="file"
+                  accept="image/webp,image/jpeg,image/png"
+                  className="sr-only"
+                  onChange={handleAvatarChange}
+                />
+              </label>
+              {isUploading ? (
+                <p className="text-xs text-muted-foreground">Uploading… {progress}%</p>
+              ) : null}
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-11 flex-1 rounded-full"
+                  onClick={() => setStep(3)}
+                >
+                  Back
+                </Button>
+                <Button
+                  type="button"
+                  className="h-11 flex-1 rounded-full"
+                  onClick={handleFinish}
+                  disabled={busy}
+                >
+                  {busy ? "Saving…" : avatarFile ? "Finish setup" : "Skip & finish"}
+                </Button>
+              </div>
+            </div>
+          ) : null}
+
+          {step === 5 ? (
+            <div className="space-y-4 py-6 text-center">
+              <CheckCircle2 className="mx-auto text-primary" size={48} />
+              <h2 className="text-xl font-semibold">You&apos;re all set!</h2>
+              <p className="text-sm text-muted-foreground">
+                Your Chic A Boo account is ready for bespoke memories.
+              </p>
+              <Button
+                type="button"
+                className="h-11 w-full rounded-full"
+                onClick={() => router.replace("/account")}
+              >
+                Go to My Account
+              </Button>
+            </div>
+          ) : null}
         </div>
       </div>
     </main>
