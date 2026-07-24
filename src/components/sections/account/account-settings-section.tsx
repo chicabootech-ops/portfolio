@@ -2,10 +2,7 @@
 
 import {
   Bell,
-  Globe,
   KeyRound,
-  Link2,
-  Lock,
   Shield,
   Smartphone,
   User,
@@ -30,7 +27,7 @@ export function AccountSettingsSection({
         {
           icon: <KeyRound size={18} />,
           label: "Change Password",
-          href: "/account/security",
+          href: "/account/security#password",
         },
         {
           icon: <Bell size={18} />,
@@ -40,37 +37,17 @@ export function AccountSettingsSection({
       ],
     },
     {
-      title: "Preferences",
+      title: "Security",
       items: [
-        {
-          icon: <Globe size={18} />,
-          label: "Language",
-          href: "/account/settings#language",
-        },
-        {
-          icon: <Lock size={18} />,
-          label: "Privacy Settings",
-          href: "/account/settings#privacy",
-        },
         {
           icon: <Shield size={18} />,
           label: "Security Settings",
           href: "/account/security",
         },
-      ],
-    },
-    {
-      title: "Devices & Connections",
-      items: [
         {
           icon: <Smartphone size={18} />,
           label: "Manage Devices",
           href: "/account/security#devices",
-        },
-        {
-          icon: <Link2 size={18} />,
-          label: "Connected Accounts",
-          href: "/account/settings#connected",
         },
       ],
     },

@@ -9,7 +9,15 @@ import { resetPassword } from "@/lib/auth/api";
 import { AuthLayout } from "./auth-layout";
 import { AuthFormField, authInputClassName } from "./auth-form-field";
 
-const MIN_PASSWORD_LENGTH = 10;
+const MIN_PASSWORD_LENGTH = 8;
+
+function isStrongPassword(password: string) {
+  return (
+    password.length >= MIN_PASSWORD_LENGTH &&
+    /[A-Za-z]/.test(password) &&
+    /\d/.test(password)
+  );
+}
 
 export function ResetPasswordSection() {
   const router = useRouter();
@@ -30,8 +38,10 @@ export function ResetPasswordSection() {
       return;
     }
 
-    if (password.length < MIN_PASSWORD_LENGTH) {
-      setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
+    if (!isStrongPassword(password)) {
+      setError(
+        `Password must be at least ${MIN_PASSWORD_LENGTH} characters and include a letter and a number.`
+      );
       return;
     }
 
@@ -53,11 +63,36 @@ export function ResetPasswordSection() {
     }
   }
 
+  if (!token) {
+    return (
+      <AuthLayout
+        title="Reset link required"
+        breadcrumbLabel="Reset Password"
+        subtitle="Open the link from your email to set a new password."
+        footer={
+          <>
+            Need a new link?{" "}
+            <Link
+              href="/forgot-password"
+              className="font-medium text-primary hover:underline underline-offset-4"
+            >
+              Request reset
+            </Link>
+          </>
+        }
+      >
+        <Button asChild className="h-11 w-full rounded-full text-sm font-semibold tracking-wide">
+          <Link href="/forgot-password">Go to forgot password</Link>
+        </Button>
+      </AuthLayout>
+    );
+  }
+
   return (
     <AuthLayout
       title="New Password"
       breadcrumbLabel="Reset Password"
-      subtitle="Choose a new password for your account."
+      subtitle="Choose a new password for your account (min 8 characters, letter + number)."
       footer={
         <>
           Need a new link?{" "}

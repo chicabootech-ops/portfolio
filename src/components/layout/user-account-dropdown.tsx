@@ -11,6 +11,7 @@ import {
   LogOut,
   MapPin,
   Package,
+  Shield,
   UserCircle,
 } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -21,6 +22,7 @@ const accountMenuItems = [
   { label: "Profile", href: "/account", icon: UserCircle },
   { label: "My Orders", href: "/account/orders", icon: Package },
   { label: "Saved Addresses", href: "/account/addresses", icon: MapPin },
+  { label: "Security", href: "/account/security", icon: Shield },
   { label: "Wishlist", href: "/wishlist", icon: Heart },
   { label: "Notifications", href: "/account/notifications", icon: Bell },
 ] as const;

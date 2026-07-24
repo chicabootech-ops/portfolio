@@ -85,7 +85,7 @@ export function AccountPage() {
             <SecurityCenter status={security} phone={profile.phone} email={profile.email} />
           </div>
 
-          <AccountSettingsSection />
+          <AccountSettingsSection onEditProfile={() => setEditorOpen(true)} />
           <SupportCenter />
           <LogoutSection />
           <DangerZoneSection />

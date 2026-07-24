@@ -244,11 +244,13 @@ export function OnboardingFlow() {
                   </select>
                 </AuthFormField>
                 <AuthFormField label="Currency" id="onb-currency">
-                  <select id="onb-currency" className={authInputClassName} value={preferences.currency} onChange={(e) => setPreferences({ ...preferences, currency: e.target.value })}>
+                  <select
+                    id="onb-currency"
+                    className={authInputClassName}
+                    value={preferences.currency}
+                    onChange={(e) => setPreferences({ ...preferences, currency: e.target.value })}
+                  >
                     <option value="INR">INR</option>
-                    <option value="USD">USD</option>
-                    <option value="EUR">EUR</option>
-                    <option value="GBP">GBP</option>
                   </select>
                 </AuthFormField>
                 {[

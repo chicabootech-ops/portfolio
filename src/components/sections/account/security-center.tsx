@@ -101,31 +101,42 @@ export function SecurityCenter({ status, phone, email }: SecurityCenterProps) {
         <StatusItem
           icon={<Phone size={16} />}
           label="Phone number"
-          ok={Boolean(phone)}
-          detail={phone ? phone : "Add a phone number in Edit Profile"}
+          ok={status.phone_verified}
+          detail={
+            status.phone_verified
+              ? phone || "Verified"
+              : phone
+                ? `${phone} — verify in Security`
+                : "Add & verify phone in Security"
+          }
         />
         <StatusItem
           icon={<KeyRound size={16} />}
           label="Password"
           ok={status.password_set}
-          detail={status.password_set ? "Strong password set" : "Create a password"}
+          detail={status.password_set ? "Password set" : "Create a password"}
         />
-        <StatusItem
-          icon={<Smartphone size={16} />}
-          label="Two-factor authentication"
-          ok={status.two_factor_enabled}
-          detail={
-            status.two_factor_enabled
-              ? "2FA is enabled"
-              : "Coming soon"
-          }
-        />
+        <div className="flex items-center gap-3 rounded-xl bg-background/50 px-3 py-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-secondary/60 text-primary">
+            <Smartphone size={16} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-foreground">Two-factor authentication</p>
+            <p className="text-xs text-muted-foreground">Coming soon</p>
+          </div>
+          <Badge variant="muted">Soon</Badge>
+        </div>
       </div>
 
       {message ? <p className="mt-3 text-sm text-muted-foreground">{message}</p> : null}
       {error ? <p className="mt-3 text-sm text-destructive">{error}</p> : null}
 
       <div className="mt-4 grid gap-2 sm:grid-cols-2">
+        <Button type="button" variant="outline" className="h-11 min-h-[44px] rounded-full" asChild>
+          <Link href="/account/security">
+            Manage security
+          </Link>
+        </Button>
         <Button
           type="button"
           variant="outline"

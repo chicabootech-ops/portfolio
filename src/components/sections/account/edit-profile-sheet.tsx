@@ -200,9 +200,14 @@ export function EditProfileSheet({
 
       {activeTab === "password" ? (
         <div className="space-y-4 rounded-xl border border-border/20 bg-secondary/20 p-4 text-sm text-muted-foreground">
-          <p>To change your password, use the forgot-password flow. We email you a secure reset link.</p>
+          <p>To change your password, we email you a secure reset link. All other sessions sign out after a successful reset.</p>
           <Button type="button" asChild className="h-11 w-full rounded-full">
-            <Link href="/forgot-password">Reset password</Link>
+            <Link href={`/forgot-password?email=${encodeURIComponent(user.email)}`}>
+              Send reset link
+            </Link>
+          </Button>
+          <Button type="button" asChild variant="outline" className="h-11 w-full rounded-full">
+            <Link href="/account/security#password">Security settings</Link>
           </Button>
         </div>
       ) : null}

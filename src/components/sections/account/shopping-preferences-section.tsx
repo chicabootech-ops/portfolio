@@ -6,6 +6,7 @@ import type { ShoppingPreferences } from "@/types/account";
 import type { UserPreferences } from "@/types/user";
 import { usePreferences, useUpdatePreferences } from "@/hooks/usePreferences";
 import { mapShoppingToPreferencesUpdate, mapUserPreferencesToShopping } from "@/lib/account/adapters";
+import { authInputClassName } from "@/components/sections/auth/auth-form-field";
 import { SectionCard } from "./shared/section-card";
 
 const DEFAULT_PREFS: ShoppingPreferences = {
@@ -28,6 +29,7 @@ export function ShoppingPreferencesSection({ preferences }: ShoppingPreferencesS
   const { data, isLoading } = usePreferences(preferences, !skipFetch);
   const updatePrefs = useUpdatePreferences();
   const [prefs, setPrefs] = useState<ShoppingPreferences>(DEFAULT_PREFS);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     const source = preferences ?? data;
@@ -35,8 +37,13 @@ export function ShoppingPreferencesSection({ preferences }: ShoppingPreferencesS
   }, [preferences, data]);
 
   async function savePreferences(next: ShoppingPreferences) {
+    setSaveError(null);
     setPrefs(next);
-    await updatePrefs.mutateAsync(mapShoppingToPreferencesUpdate(next));
+    try {
+      await updatePrefs.mutateAsync(mapShoppingToPreferencesUpdate(next));
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Could not save preferences");
+    }
   }
 
   const toggle = (key: keyof ShoppingPreferences) => {
@@ -53,26 +60,34 @@ export function ShoppingPreferencesSection({ preferences }: ShoppingPreferencesS
   }
 
   return (
-    <SectionCard title="Shopping Preferences">
+    <SectionCard title="Shopping Preferences" id="preferences">
       <div className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-3">
-          {(
-            [
-              ["Theme", prefs.theme],
-              ["Language", prefs.language],
-              ["Currency", prefs.currency],
-            ] as const
-          ).map(([label, value]) => (
-            <div
-              key={label}
-              className="rounded-xl border border-border/25 bg-background/50 px-4 py-3"
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="block space-y-1.5">
+            <span className="text-xs text-muted-foreground">Language</span>
+            <select
+              className={authInputClassName}
+              value={prefs.language}
+              disabled={updatePrefs.isPending}
+              onChange={(e) =>
+                void savePreferences({ ...prefs, language: e.target.value })
+              }
             >
-              <p className="text-xs text-muted-foreground">{label}</p>
-              <p className="mt-0.5 text-sm font-medium capitalize text-foreground">
-                {value}
-              </p>
-            </div>
-          ))}
+              <option value="en">English</option>
+              <option value="hi">Hindi</option>
+            </select>
+          </label>
+          <label className="block space-y-1.5">
+            <span className="text-xs text-muted-foreground">Currency</span>
+            <select
+              className={authInputClassName}
+              value={prefs.currency}
+              disabled
+              aria-readonly
+            >
+              <option value="INR">INR</option>
+            </select>
+          </label>
         </div>
 
         <div className="overflow-hidden rounded-xl border border-border/20 divide-y divide-border/20">
@@ -80,9 +95,6 @@ export function ShoppingPreferencesSection({ preferences }: ShoppingPreferencesS
             [
               ["marketing_emails", "Marketing emails", "Offers and new collections"],
               ["order_notifications", "Order updates", "Shipping and delivery alerts"],
-              ["wishlist_alerts", "Wishlist notifications", "When wishlist items change"],
-              ["price_alerts", "Price drop alerts", "When favourites go on sale"],
-              ["back_in_stock_alerts", "Back in stock alerts", "When items are available again"],
             ] as const
           ).map(([key, label, description]) => (
             <div
@@ -96,12 +108,7 @@ export function ShoppingPreferencesSection({ preferences }: ShoppingPreferencesS
               <Switch
                 checked={prefs[key]}
                 onCheckedChange={() => toggle(key)}
-                disabled={
-                  updatePrefs.isPending ||
-                  key === "wishlist_alerts" ||
-                  key === "price_alerts" ||
-                  key === "back_in_stock_alerts"
-                }
+                disabled={updatePrefs.isPending}
                 aria-label={label}
               />
             </div>
@@ -109,6 +116,11 @@ export function ShoppingPreferencesSection({ preferences }: ShoppingPreferencesS
         </div>
         {updatePrefs.isPending ? (
           <p className="text-xs text-muted-foreground">Saving preferences…</p>
+        ) : null}
+        {saveError ? (
+          <p className="text-xs text-destructive" role="alert">
+            {saveError}
+          </p>
         ) : null}
       </div>
     </SectionCard>

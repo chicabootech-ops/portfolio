@@ -9,7 +9,15 @@ import { registerUser } from "@/lib/auth/api";
 import { AuthLayout } from "./auth-layout";
 import { AuthFormField, authInputClassName } from "./auth-form-field";
 
-const MIN_PASSWORD_LENGTH = 10;
+const MIN_PASSWORD_LENGTH = 8;
+
+function isStrongPassword(password: string) {
+  return (
+    password.length >= MIN_PASSWORD_LENGTH &&
+    /[A-Za-z]/.test(password) &&
+    /\d/.test(password)
+  );
+}
 
 export function SignupSection() {
   const router = useRouter();
@@ -25,8 +33,10 @@ export function SignupSection() {
     event.preventDefault();
     setError(null);
 
-    if (password.length < MIN_PASSWORD_LENGTH) {
-      setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
+    if (!isStrongPassword(password)) {
+      setError(
+        `Password must be at least ${MIN_PASSWORD_LENGTH} characters and include a letter and a number.`
+      );
       return;
     }
 
@@ -107,8 +117,8 @@ export function SignupSection() {
           id="signup-password"
           label="Password"
           error={
-            password.length > 0 && password.length < MIN_PASSWORD_LENGTH
-              ? `At least ${MIN_PASSWORD_LENGTH} characters required`
+            password.length > 0 && !isStrongPassword(password)
+              ? `At least ${MIN_PASSWORD_LENGTH} characters, with a letter and a number`
               : undefined
           }
         >
@@ -121,7 +131,7 @@ export function SignupSection() {
               minLength={MIN_PASSWORD_LENGTH}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder="Create a secure password"
+              placeholder="Min 8 chars, letter + number"
               maxLength={128}
               className={authInputClassName}
             />

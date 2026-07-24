@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { forgotPassword } from "@/lib/auth/api";
@@ -10,7 +10,6 @@ import { AuthLayout } from "./auth-layout";
 import { AuthFormField, authInputClassName } from "./auth-form-field";
 
 export function ForgotPasswordSection() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState(searchParams.get("email") ?? "");
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +25,7 @@ export function ForgotPasswordSection() {
       await forgotPassword(email);
       setSuccess(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to send reset code.");
+      setError(err instanceof Error ? err.message : "Unable to send reset link.");
     } finally {
       setIsSubmitting(false);
     }
@@ -36,7 +35,7 @@ export function ForgotPasswordSection() {
     <AuthLayout
       title="Reset Password"
       breadcrumbLabel="Forgot Password"
-      subtitle="Enter your email and we will send a 6-digit code to reset your password."
+      subtitle="Enter your email and we will send a secure reset link."
       footer={
         <>
           Remember your password?{" "}
@@ -52,18 +51,28 @@ export function ForgotPasswordSection() {
       {success ? (
         <div className="space-y-5 text-center">
           <p className="text-sm text-muted-foreground">
-            If an account exists for <span className="font-medium text-foreground">{email}</span>,
-            we sent a reset code. It expires in 10 minutes.
+            If an account exists for{" "}
+            <span className="font-medium text-foreground">{email}</span>, we sent a
+            password reset link. Open it from your inbox to choose a new password.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            The link expires after a short time. Didn’t get it? Check spam, or request
+            another link below.
           </p>
           <Button
             type="button"
+            variant="outline"
             className="h-11 w-full rounded-full text-sm font-semibold tracking-wide"
-            onClick={() =>
-              router.push(`/reset-password?email=${encodeURIComponent(email.trim())}`)
-            }
+            onClick={() => setSuccess(false)}
           >
-            Enter reset code
+            Send again
           </Button>
+          <Link
+            href="/login"
+            className="inline-flex h-11 w-full items-center justify-center rounded-full text-sm font-semibold tracking-wide text-primary hover:underline underline-offset-4"
+          >
+            Back to sign in
+          </Link>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -97,10 +106,10 @@ export function ForgotPasswordSection() {
             {isSubmitting ? (
               <>
                 <Loader2 className="animate-spin" />
-                Sending code...
+                Sending link...
               </>
             ) : (
-              "Send reset code"
+              "Send reset link"
             )}
           </Button>
         </form>

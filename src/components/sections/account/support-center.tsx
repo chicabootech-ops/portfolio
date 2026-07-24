@@ -1,22 +1,25 @@
 "use client";
 
 import {
-  AlertCircle,
   Headphones,
   HelpCircle,
-  MessageCircle,
-  Ticket,
+  MapPin,
+  Package,
+  Users,
 } from "lucide-react";
 import { SectionCard } from "./shared/section-card";
 import { SettingsRow } from "./shared/settings-row";
 
 const supportItems = [
-  { icon: <HelpCircle size={18} />, label: "Help Center", href: "/help" },
-  { icon: <HelpCircle size={18} />, label: "FAQs", href: "/help/faq" },
-  { icon: <Headphones size={18} />, label: "Contact Support", href: "/contact" },
-  { icon: <MessageCircle size={18} />, label: "Live Chat", href: "/contact#chat" },
-  { icon: <Ticket size={18} />, label: "Raise Ticket", href: "/support/ticket" },
-  { icon: <AlertCircle size={18} />, label: "Report Issue", href: "/support/report" },
+  { icon: <Users size={18} />, label: "About the Founders", href: "/about" },
+  { icon: <Package size={18} />, label: "Track an order", href: "/track-order" },
+  { icon: <MapPin size={18} />, label: "Saved addresses", href: "/account/addresses" },
+  { icon: <HelpCircle size={18} />, label: "Account security", href: "/account/security" },
+  {
+    icon: <Headphones size={18} />,
+    label: "Email support",
+    href: "mailto:hello@chicaboo.co?subject=Chic%20A%20Boo%20support",
+  },
 ];
 
 export function SupportCenter() {

@@ -3,7 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { userQueryKeys } from "@/hooks/query-keys";
@@ -11,10 +11,19 @@ import { loginUser } from "@/lib/auth/api";
 import { AuthLayout } from "./auth-layout";
 import { AuthFormField, authInputClassName } from "./auth-form-field";
 
+function safeNextPath(raw: string | null): string | null {
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return null;
+  return raw;
+}
+
 export function LoginSection() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  const [email, setEmail] = useState("");
+  const nextPath = safeNextPath(searchParams.get("next"));
+  const resetOk = searchParams.get("reset") === "1";
+  const verifiedOk = searchParams.get("verified") === "1";
+  const [email, setEmail] = useState(searchParams.get("email") ?? "");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,11 +42,15 @@ export function LoginSection() {
       await queryClient.invalidateQueries({ queryKey: userQueryKeys.me() });
 
       if (!sessionUser.is_verified) {
-        router.push(`/verify-email?email=${encodeURIComponent(sessionUser.email)}`);
+        const verifyQs = new URLSearchParams({ email: sessionUser.email });
+        if (nextPath) verifyQs.set("next", nextPath);
+        router.push(`/verify-email?${verifyQs.toString()}`);
       } else if (!sessionUser.profile_completed) {
-        router.push("/onboarding");
+        router.push(
+          nextPath ? `/onboarding?next=${encodeURIComponent(nextPath)}` : "/onboarding"
+        );
       } else {
-        router.push("/");
+        router.push(nextPath ?? "/");
       }
       router.refresh();
     } catch (err) {
@@ -65,6 +78,17 @@ export function LoginSection() {
       }
     >
       <form onSubmit={handleSubmit} className="space-y-5">
+        {resetOk ? (
+          <p className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground">
+            Password updated. Sign in with your new password.
+          </p>
+        ) : null}
+        {verifiedOk ? (
+          <p className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground">
+            Email verified. Sign in to continue.
+          </p>
+        ) : null}
+
         <AuthFormField id="login-email" label="Email">
           <input
             id="login-email"
@@ -87,9 +111,9 @@ export function LoginSection() {
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-            placeholder="Enter your password"
-            maxLength={128}
-            className={authInputClassName}
+              placeholder="Enter your password"
+              maxLength={128}
+              className={authInputClassName}
             />
             <button
               type="button"

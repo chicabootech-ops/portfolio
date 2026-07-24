@@ -14,8 +14,10 @@ export const siteConfig = {
 
 export const mainNavLinks = [
   { label: "Home", href: "/" },
-  { label: "Customise Your Product", href: "/customise" },
   { label: "Track Order", href: "/track-order" },
   { label: "About the Founders", href: "/about" },
-  { label: "Contact Us", href: "/contact" },
+  {
+    label: "Contact Us",
+    href: "mailto:hello@chicaboo.co?subject=Chic%20A%20Boo%20inquiry",
+  },
 ] as const;

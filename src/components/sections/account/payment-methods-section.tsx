@@ -25,9 +25,7 @@ export function PaymentMethodsSection({ methods }: PaymentMethodsSectionProps) {
         <EmptyState
           icon={<CreditCard size={24} />}
           title="No saved payments"
-          description="Save a card or UPI ID for quicker checkout on your next order."
-          actionLabel="Add Payment Method"
-          actionHref="/account/payments"
+          description="Payment methods will appear here once checkout goes live."
         />
       ) : (
         <div className="space-y-3">
