@@ -6,6 +6,8 @@
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-07-22",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  // Required to stay under Workers Free 3 MiB gzip limit (~3.06 MiB with minify).
+  "minify": true,
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
