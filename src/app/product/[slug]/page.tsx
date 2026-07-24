@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageShell } from "@/components/layout";
 import { ImageWithSkeleton } from "@/components/skeletons";
+import { AddToCart } from "@/components/commerce/add-to-cart";
 import { formatPaise } from "@/lib/format";
 import { resolveCollectionImage } from "@/lib/collection-images";
 import { fetchProductBySlug } from "@/services/catalog.service";
@@ -68,6 +69,22 @@ export default async function ProductPage({ params }: ProductPageProps) {
               {product.description}
             </p>
           ) : null}
+
+          <AddToCart
+            slug={product.slug}
+            name={product.name}
+            image={
+              product.image_url ||
+              resolveCollectionImage(product.category_slug || product.slug, null)
+            }
+            pricePaise={product.price_paise}
+          />
+
+          <ul className="mt-8 space-y-2 border-t border-border/40 pt-6 text-sm text-muted-foreground">
+            <li className="flex items-center gap-2">✦ Handcrafted with love, made to be cherished</li>
+            <li className="flex items-center gap-2">✦ Secure checkout via Razorpay (UPI, cards, netbanking)</li>
+            <li className="flex items-center gap-2">✦ Thoughtfully packaged &amp; ready to gift</li>
+          </ul>
         </div>
       </div>
     </PageShell>

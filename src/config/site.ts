@@ -2,7 +2,7 @@ export const siteConfig = {
   name: "Chic A Boo",
   description: "Bespoke flowers and gifts crafted with care.",
   announcement:
-    "Crafting bespoke memories. Free delivery on orders over $100. ✨",
+    "Handcrafted crochet blooms, keepsakes & magazines ✦ Thoughtfully made, ready to gift ✦ Pan-India delivery",
   url:
     process.env.NEXT_PUBLIC_SITE_URL ??
     (process.env.VERCEL_URL

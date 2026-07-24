@@ -4,12 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { Menu, X, Search, User, Heart, ShoppingBag, ChevronDown, Loader2 } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useCart } from "@/components/providers/cart-provider";
 import { useCollections } from "@/hooks/useCollections";
 import { mainNavLinks, siteConfig } from "@/config/site";
 import { UserAccountDropdown } from "./user-account-dropdown";
 
 export default function Navbar() {
   const { user, isLoading } = useAuth();
+  const { count: cartCount } = useCart();
   const { data: shopCategories = [], isLoading: categoriesLoading } = useCollections();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchEditable, setSearchEditable] = useState(false);
@@ -95,11 +97,13 @@ export default function Navbar() {
             <Link href="/wishlist" className="hidden sm:flex text-foreground hover:text-primary transition-colors p-1">
               <Heart size={20} strokeWidth={1.5} className="lg:w-[22px] lg:h-[22px]" />
             </Link>
-            <Link href="/cart" className="relative flex text-foreground hover:text-primary transition-colors p-1 group">
+            <Link href="/cart" className="relative flex text-foreground hover:text-primary transition-colors p-1 group" aria-label="Shopping bag">
               <ShoppingBag size={20} strokeWidth={1.5} className="sm:w-[22px] sm:h-[22px]" />
-              <span className="absolute -top-1.5 -right-1.5 bg-primary text-primary-foreground text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                2
-              </span>
+              {cartCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-primary text-primary-foreground text-[10px] font-bold min-w-4 h-4 px-1 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                  {cartCount > 99 ? "99+" : cartCount}
+                </span>
+              )}
             </Link>
           </div>
         </div>

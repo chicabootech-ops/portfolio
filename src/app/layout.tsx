@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { ConditionalNavbar } from "@/components/layout";
+import { ConditionalNavbar, Footer } from "@/components/layout";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { CartProvider } from "@/components/providers/cart-provider";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { siteConfig } from "@/config/site";
 import "./globals.css";
@@ -45,8 +46,11 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background font-sans">
         <QueryProvider>
           <AuthProvider>
-            <ConditionalNavbar />
-            {children}
+            <CartProvider>
+              <ConditionalNavbar />
+              {children}
+              <Footer />
+            </CartProvider>
           </AuthProvider>
         </QueryProvider>
       </body>
