@@ -6,9 +6,9 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "build": "node ./scripts/build.mjs",
-    "build:next": "next build",
+    "build:next": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "cf:build": "opennextjs-cloudflare build",
