@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { motion } from "motion/react";
 
+const easeOut: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
 const fadeUp = {
   hidden: { opacity: 0, y: 28 },
   show: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: 0.08 * i, duration: 0.7, ease: [0.22, 1, 0.36, 1] },
+    transition: { delay: 0.08 * i, duration: 0.7, ease: easeOut },
   }),
 };
 
@@ -29,7 +31,7 @@ function FounderPortrait({
       initial={{ opacity: 0, y: 36 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
-      transition={{ delay, duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ delay, duration: 0.75, ease: easeOut }}
     >
       <div className="founders-portrait__frame" aria-hidden>
         <div className="founders-portrait__empty">
@@ -154,7 +156,7 @@ export function FoundersAbout() {
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.7, ease: easeOut }}
           >
             <p className="text-[0.7rem] font-medium uppercase tracking-[0.24em] text-primary">
               Our story
