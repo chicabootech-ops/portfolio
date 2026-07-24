@@ -1,12 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import {
-  BadgeCheck,
-  Mail,
-  Pencil,
-  Phone,
-} from "lucide-react";
+import Link from "next/link";
+import { BadgeCheck, Mail, Pencil, Phone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useDisplayAvatar } from "@/hooks/useDisplayAvatar";
@@ -35,6 +31,7 @@ function formatMemberSince(date: string) {
 
 export function AccountHeader({ user, onEditProfile }: AccountHeaderProps) {
   const { src: avatarSrc } = useDisplayAvatar(user.avatar_url);
+  const needsPhoneVerify = Boolean(user.phone && !user.phone_verified);
 
   return (
     <section
@@ -49,7 +46,15 @@ export function AccountHeader({ user, onEditProfile }: AccountHeaderProps) {
         <div className="flex items-start gap-4">
           {avatarSrc ? (
             <div className="relative size-16 shrink-0 overflow-hidden rounded-2xl shadow-md md:size-20">
-              <Image src={avatarSrc} alt="" fill className="object-cover" unoptimized loading="eager" priority />
+              <Image
+                src={avatarSrc}
+                alt=""
+                fill
+                className="object-cover"
+                unoptimized
+                loading="eager"
+                priority
+              />
             </div>
           ) : (
             <div
@@ -61,7 +66,9 @@ export function AccountHeader({ user, onEditProfile }: AccountHeaderProps) {
           )}
 
           <div className="min-w-0 flex-1">
-            <h1 className="text-xl font-semibold text-foreground md:text-2xl">{user.name}</h1>
+            <h1 className="text-xl font-semibold text-foreground md:text-2xl">
+              {user.name}
+            </h1>
 
             <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
               <Mail size={14} aria-hidden />
@@ -93,6 +100,17 @@ export function AccountHeader({ user, onEditProfile }: AccountHeaderProps) {
               ) : null}
             </div>
 
+            {needsPhoneVerify ? (
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <Button type="button" asChild size="sm" className="h-10 rounded-full px-4">
+                  <Link href="/account/security#phone">Verify phone with OTP</Link>
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  We&apos;ll SMS a code to {user.phone}
+                </p>
+              </div>
+            ) : null}
+
             <p className="mt-3 text-xs text-muted-foreground">
               Member since {formatMemberSince(user.created_at)}
             </p>
@@ -103,7 +121,7 @@ export function AccountHeader({ user, onEditProfile }: AccountHeaderProps) {
           type="button"
           variant="outline"
           onClick={onEditProfile}
-          className="h-11 min-h-[44px] w-full shrink-0 rounded-full sm:w-auto"
+          className="h-11 min-h-11 w-full shrink-0 rounded-full sm:w-auto"
         >
           <Pencil size={16} aria-hidden />
           Edit Profile

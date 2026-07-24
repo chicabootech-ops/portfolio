@@ -106,10 +106,24 @@ export function SecurityCenter({ status, phone, email }: SecurityCenterProps) {
             status.phone_verified
               ? phone || "Verified"
               : phone
-                ? `${phone} — verify in Security`
-                : "Add & verify phone in Security"
+                ? `${phone} — needs OTP`
+                : "Add & verify phone"
           }
         />
+        {!status.phone_verified ? (
+          <div className="rounded-xl border border-border/30 bg-background/50 p-4">
+            <p className="mb-3 text-sm text-muted-foreground">
+              {phone
+                ? "Send an SMS OTP to verify the number already on your account."
+                : "Add a mobile number and verify it with SMS OTP."}
+            </p>
+            <Button type="button" asChild className="h-10 rounded-full">
+              <Link href="/account/security#phone">
+                {phone ? "Verify phone" : "Add & verify phone"}
+              </Link>
+            </Button>
+          </div>
+        ) : null}
         <StatusItem
           icon={<KeyRound size={16} />}
           label="Password"

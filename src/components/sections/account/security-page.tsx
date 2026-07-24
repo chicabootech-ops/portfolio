@@ -43,6 +43,11 @@ export function SecurityPage() {
 
   const phoneDisplay = useMemo(() => me?.phone ?? "", [me?.phone]);
 
+  // Prefill saved number so existing users can tap Send OTP immediately.
+  useMemo(() => {
+    // no-op placeholder — real prefills below via effect pattern
+  }, []);
+
   if (meLoading || !me) {
     if (!meLoading && !me) {
       router.replace("/login?next=/account/security");
