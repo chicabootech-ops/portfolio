@@ -41,8 +41,13 @@ export function AccountPage() {
       return;
     }
     const onboarding = me.onboarding;
-    if (onboarding && !onboarding.shopping_ready && !onboarding.profile_complete) {
-      router.replace("/onboarding");
+    // Don't loop completed users into onboarding. Backend used to require last_name
+    // for profile_complete; single-name + address is enough to use the account.
+    if (onboarding && !onboarding.shopping_ready) {
+      const hasName = Boolean(me.profile?.first_name?.trim());
+      if (!hasName || !onboarding.has_address) {
+        router.replace("/onboarding");
+      }
     }
   }, [me, meLoading, router]);
 

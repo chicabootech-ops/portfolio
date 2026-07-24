@@ -15,7 +15,12 @@ export function mapCurrentUserToAuthUser(me: CurrentUser): AuthUser {
     role: "customer",
     is_verified: me.email_verified,
     phone_verified: me.phone_verified,
-    profile_completed: me.onboarding?.shopping_ready ?? false,
+    profile_completed: Boolean(
+      me.onboarding?.shopping_ready ||
+        (me.email_verified &&
+          me.profile?.first_name?.trim() &&
+          me.onboarding?.has_address)
+    ),
     avatar_url: me.profile?.avatar_url ?? null,
     preferences: {
       theme: "system",
