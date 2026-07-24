@@ -1,6 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "landing-page",
+  // Must match Cloudflare Workers Builds project name ("portfolio").
+  // CI overrides `name` to portfolio; self-reference must match or deploy fails.
+  "name": "portfolio",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-07-22",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
@@ -11,7 +13,7 @@
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
-      "service": "landing-page"
+      "service": "portfolio"
     }
   ],
   "vars": {
