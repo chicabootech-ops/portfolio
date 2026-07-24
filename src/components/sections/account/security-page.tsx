@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { KeyRound, Loader2, Monitor, Smartphone, Tablet, Trash2 } from "lucide-react";
@@ -43,10 +43,11 @@ export function SecurityPage() {
 
   const phoneDisplay = useMemo(() => me?.phone ?? "", [me?.phone]);
 
-  // Prefill saved number so existing users can tap Send OTP immediately.
-  useMemo(() => {
-    // no-op placeholder — real prefills below via effect pattern
-  }, []);
+  useEffect(() => {
+    if (me?.phone && !otpPhone) {
+      setOtpPhone(me.phone);
+    }
+  }, [me?.phone, otpPhone]);
 
   if (meLoading || !me) {
     if (!meLoading && !me) {
@@ -148,7 +149,7 @@ export function SecurityPage() {
               <input
                 type="tel"
                 inputMode="numeric"
-                placeholder="Indian mobile (optional if already on profile)"
+                placeholder={phoneDisplay || "Indian mobile number"}
                 value={otpPhone}
                 onChange={(e) => setOtpPhone(e.target.value)}
                 className={authInputClassName}
