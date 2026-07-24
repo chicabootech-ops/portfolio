@@ -1,0 +1,126 @@
+import type { Product } from "@/types/product";
+
+export const bestSellingProducts: Product[] = [
+  {
+    id: "ruby-rose-bouquet",
+    name: "Ruby Rose Bouquet",
+    price: 89,
+    originalPrice: 109,
+    image: "/collections/premium-blooms.jpg",
+    href: "/product/ruby-rose-bouquet",
+  },
+  {
+    id: "blush-peony-delight",
+    name: "Blush Peony Delight",
+    price: 75,
+    image: "/collections/birthday-blooms.jpg",
+    href: "/product/blush-peony-delight",
+  },
+  {
+    id: "eternal-love-combo",
+    name: "Eternal Love Combo",
+    price: 120,
+    originalPrice: 145,
+    image: "/collections/combos.jpg",
+    href: "/product/eternal-love-combo",
+  },
+  {
+    id: "wedding-bliss-garland",
+    name: "Wedding Bliss Garland",
+    price: 95,
+    image: "/collections/wedding-bouquets.jpg",
+    href: "/product/wedding-bliss-garland",
+  },
+  {
+    id: "premium-bloom-box",
+    name: "Premium Bloom Box",
+    price: 65,
+    image: "/collections/gift-box.jpg",
+    href: "/product/premium-bloom-box",
+  },
+  {
+    id: "jumbo-sunflower-joy",
+    name: "Jumbo Sunflower Joy",
+    price: 110,
+    image: "/collections/jumbo-bouquets.jpg",
+    href: "/product/jumbo-sunflower-joy",
+  },
+  {
+    id: "anniversary-special",
+    name: "Anniversary Special",
+    price: 99,
+    originalPrice: 119,
+    image: "/collections/anniversary-specials.jpg",
+    href: "/product/anniversary-special",
+  },
+  {
+    id: "character-bloom-set",
+    name: "Character Bloom Set",
+    price: 55,
+    image: "/collections/characters.jpg",
+    href: "/product/character-bloom-set",
+  },
+];
+
+
+export const trendingGiftProducts: Product[] = [
+  {
+    id: "luxury-gift-hamper",
+    name: "Luxury Gift Hamper",
+    price: 149,
+    originalPrice: 179,
+    image: "/collections/gift-box.jpg",
+    href: "/product/luxury-gift-hamper",
+  },
+  {
+    id: "personalised-bloom-jar",
+    name: "Personalised Bloom Jar",
+    price: 68,
+    image: "/collections/pots.jpg",
+    href: "/product/personalised-bloom-jar",
+  },
+  {
+    id: "romantic-rose-trio",
+    name: "Romantic Rose Trio",
+    price: 82,
+    originalPrice: 99,
+    image: "/collections/premium-blooms.jpg",
+    href: "/product/romantic-rose-trio",
+  },
+  {
+    id: "birthday-surprise-box",
+    name: "Birthday Surprise Box",
+    price: 94,
+    image: "/collections/birthday-blooms.jpg",
+    href: "/product/birthday-surprise-box",
+  },
+  {
+    id: "couple-celebration-set",
+    name: "Couple Celebration Set",
+    price: 128,
+    image: "/collections/combos.jpg",
+    href: "/product/couple-celebration-set",
+  },
+  {
+    id: "mini-bloom-charms",
+    name: "Mini Bloom Charms",
+    price: 45,
+    image: "/collections/characters.jpg",
+    href: "/product/mini-bloom-charms",
+  },
+  {
+    id: "festive-floral-tower",
+    name: "Festive Floral Tower",
+    price: 135,
+    image: "/collections/jumbo-bouquets.jpg",
+    href: "/product/festive-floral-tower",
+  },
+  {
+    id: "elegant-anniversary-gift",
+    name: "Elegant Anniversary Gift",
+    price: 112,
+    originalPrice: 130,
+    image: "/collections/anniversary-specials.jpg",
+    href: "/product/elegant-anniversary-gift",
+  },
+];

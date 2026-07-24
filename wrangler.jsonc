@@ -1,11 +1,25 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
+  // Must match Cloudflare Workers Builds project name ("portfolio").
+  // CI overrides `name` to portfolio; self-reference must match or deploy fails.
   "name": "portfolio",
-  "main": "src/index.js",
+  "main": ".open-next/worker.js",
   "compatibility_date": "2026-07-22",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  // Required to stay under Workers Free 3 MiB gzip limit (~3.06 MiB with minify).
   "minify": true,
   "assets": {
-    "directory": "./public",
+    "directory": ".open-next/assets",
     "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "portfolio"
+    }
+  ],
+  "vars": {
+    "NEXT_PUBLIC_API_URL": "https://backend-code-38xz.onrender.com",
+    "NEXT_PUBLIC_SITE_URL": "https://www.chicaboo.co"
   }
 }

@@ -1,18 +1,50 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
 # dependencies
 /node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
-# env / secrets
-.env
-.env.*
-!.env.example
-.dev.vars
+# testing
+/coverage
 
-# wrangler / build
-.wrangler/
-.dist/
-dist/
+# next.js
+/.next/
+/out/
+/.open-next/
 
-# OS / editor
+# production
+/build
+
+# misc
 .DS_Store
 *.pem
-*.log
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files — keep secrets local; allow shared production public config
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
+!.env.production
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+.wrangler/
+.dev.vars
