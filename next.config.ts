@@ -41,7 +41,7 @@ const nextConfig: NextConfig = {
   // Keep the Worker under Cloudflare Free's 3 MiB gzip limit.
   // React Compiler / Babel inflate the OpenNext server bundle.
   experimental: {
-    optimizePackageImports: ["lucide-react", "radix-ui", "motion"],
+    optimizePackageImports: ["lucide-react", "radix-ui"],
   },
   async headers() {
     return [

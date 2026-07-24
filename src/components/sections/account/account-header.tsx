@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { motion } from "motion/react";
 import {
   BadgeCheck,
   Mail,
@@ -38,11 +37,8 @@ export function AccountHeader({ user, onEditProfile }: AccountHeaderProps) {
   const { src: avatarSrc } = useDisplayAvatar(user.avatar_url);
 
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35 }}
-      className="relative overflow-hidden rounded-2xl border border-border/30 bg-gradient-to-br from-white via-white to-secondary/40 p-5 shadow-md md:p-6"
+    <section
+      className="fade-up-sm relative overflow-hidden rounded-2xl border border-border/30 bg-gradient-to-br from-white via-white to-secondary/40 p-5 shadow-md md:p-6"
       id="profile"
       aria-label="Account profile"
     >
@@ -113,6 +109,6 @@ export function AccountHeader({ user, onEditProfile }: AccountHeaderProps) {
           Edit Profile
         </Button>
       </div>
-    </motion.section>
+    </section>
   );
 }

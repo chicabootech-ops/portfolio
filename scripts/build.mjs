@@ -18,7 +18,8 @@ function run(command, args) {
 }
 
 if (process.env.OPENNEXT_NESTED_NEXT_BUILD === "1") {
-  run("npx", ["next", "build"]);
+  // Webpack produces a smaller OpenNext Worker than Turbopack (fewer duplicate route chunks).
+  run("npx", ["next", "build", "--webpack"]);
 }
 
 process.env.OPENNEXT_NESTED_NEXT_BUILD = "1";

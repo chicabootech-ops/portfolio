@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "motion/react";
 import {
   Package,
   Heart,
@@ -58,11 +57,10 @@ export function OrderShortcuts({ stats }: OrderShortcutsProps) {
           const count = stats[item.key];
 
           return (
-            <motion.div
+            <div
               key={item.key}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05, duration: 0.3 }}
+              className="fade-up-sm"
+              style={{ animationDelay: `${index * 0.05}s` }}
             >
               <Link
                 href={item.href}
@@ -82,7 +80,7 @@ export function OrderShortcuts({ stats }: OrderShortcutsProps) {
                 </span>
                 <span className="text-lg font-bold text-primary">{count}</span>
               </Link>
-            </motion.div>
+            </div>
           );
         })}
       </div>

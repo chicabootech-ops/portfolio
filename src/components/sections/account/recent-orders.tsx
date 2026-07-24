@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "motion/react";
 import { Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
@@ -47,12 +46,10 @@ export function RecentOrders({ orders }: RecentOrdersProps) {
       ) : (
         <div className="flex flex-col gap-3">
           {orders.map((order, index) => (
-            <motion.article
+            <article
               key={order.id}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.06 }}
-              className="flex flex-col gap-3 rounded-xl border border-border/25 bg-background/60 p-3 sm:flex-row sm:items-center"
+              className="fade-slide-in flex flex-col gap-3 rounded-xl border border-border/25 bg-background/60 p-3 sm:flex-row sm:items-center"
+              style={{ animationDelay: `${index * 0.06}s` }}
             >
               <div className="flex min-w-0 flex-1 items-center gap-3">
                 <div className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-muted">
@@ -102,7 +99,7 @@ export function RecentOrders({ orders }: RecentOrdersProps) {
                   <Link href={`/account/orders/${order.id}`}>Details</Link>
                 </Button>
               </div>
-            </motion.article>
+            </article>
           ))}
         </div>
       )}

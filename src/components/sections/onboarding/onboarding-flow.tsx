@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "motion/react";
 import { Camera, CheckCircle2, MapPin, Sparkles, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthFormField, authInputClassName } from "@/components/sections/auth/auth-form-field";
@@ -167,14 +166,10 @@ export function OnboardingFlow() {
           </p>
         ) : null}
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={step}
-            initial={{ opacity: 0, x: 16 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -16 }}
-            className="rounded-2xl border border-border/30 bg-white p-5 shadow-md"
-          >
+        <div
+          key={step}
+          className="fade-up-sm rounded-2xl border border-border/30 bg-white p-5 shadow-md"
+        >
             {step === 1 ? (
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold">Personal information</h2>
@@ -307,8 +302,7 @@ export function OnboardingFlow() {
                 </Button>
               </div>
             ) : null}
-          </motion.div>
-        </AnimatePresence>
+        </div>
       </div>
     </main>
   );

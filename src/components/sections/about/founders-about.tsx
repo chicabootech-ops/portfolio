@@ -1,18 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "motion/react";
-
-const easeOut: [number, number, number, number] = [0.22, 1, 0.36, 1];
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 28 },
-  show: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: 0.08 * i, duration: 0.7, ease: easeOut },
-  }),
-};
 
 function FounderPortrait({
   name,
@@ -26,12 +14,9 @@ function FounderPortrait({
   delay: number;
 }) {
   return (
-    <motion.figure
-      className="founders-portrait group"
-      initial={{ opacity: 0, y: 36 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ delay, duration: 0.75, ease: easeOut }}
+    <figure
+      className="founders-portrait group fade-up"
+      style={{ animationDelay: `${delay}s` }}
     >
       <div className="founders-portrait__frame" aria-hidden>
         <div className="founders-portrait__empty">
@@ -48,7 +33,7 @@ function FounderPortrait({
         </p>
         <p className="mt-2 text-sm text-muted-foreground">{tease}</p>
       </figcaption>
-    </motion.figure>
+    </figure>
   );
 }
 
@@ -59,49 +44,34 @@ export function FoundersAbout() {
         <div className="founders-hero__wash" aria-hidden />
         <div className="founders-hero__grain" aria-hidden />
         <div className="relative z-10 mx-auto flex min-h-[78vh] max-w-4xl flex-col items-center justify-center px-6 pb-16 pt-8 text-center sm:min-h-[70vh]">
-          <motion.p
-            className="text-[0.7rem] font-medium uppercase tracking-[0.28em] text-brand-bronze/80"
-            custom={0}
-            initial="hidden"
-            animate="show"
-            variants={fadeUp}
+          <p
+            className="fade-up text-[0.7rem] font-medium uppercase tracking-[0.28em] text-brand-bronze/80"
+            style={{ animationDelay: "0s" }}
           >
             A sister act with better packaging
-          </motion.p>
-          <motion.h1
-            className="font-logo mt-5 text-5xl leading-[0.95] font-semibold tracking-[0.04em] text-primary sm:text-6xl md:text-7xl lg:text-8xl"
-            custom={1}
-            initial="hidden"
-            animate="show"
-            variants={fadeUp}
+          </p>
+          <h1
+            className="fade-up font-logo mt-5 text-5xl leading-[0.95] font-semibold tracking-[0.04em] text-primary sm:text-6xl md:text-7xl lg:text-8xl"
+            style={{ animationDelay: "0.08s" }}
           >
             CHIC A BOO
-          </motion.h1>
-          <motion.p
-            className="font-heading mt-6 max-w-xl text-xl italic leading-snug text-foreground/85 sm:text-2xl"
-            custom={2}
-            initial="hidden"
-            animate="show"
-            variants={fadeUp}
+          </h1>
+          <p
+            className="fade-up font-heading mt-6 max-w-xl text-xl italic leading-snug text-foreground/85 sm:text-2xl"
+            style={{ animationDelay: "0.16s" }}
           >
             Welcome — two sisters, one sanctuary for beautiful things.
-          </motion.p>
-          <motion.p
-            className="mt-5 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base"
-            custom={3}
-            initial="hidden"
-            animate="show"
-            variants={fadeUp}
+          </p>
+          <p
+            className="fade-up mt-5 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base"
+            style={{ animationDelay: "0.24s" }}
           >
             We turned late-night brainstorming (and a shared love for pretty chaos)
             into crochet blooms, keepsakes, and magazines worth keeping forever.
-          </motion.p>
-          <motion.div
-            className="mt-10 flex flex-wrap items-center justify-center gap-3"
-            custom={4}
-            initial="hidden"
-            animate="show"
-            variants={fadeUp}
+          </p>
+          <div
+            className="fade-up mt-10 flex flex-wrap items-center justify-center gap-3"
+            style={{ animationDelay: "0.32s" }}
           >
             <Link
               href="/"
@@ -115,7 +85,7 @@ export function FoundersAbout() {
             >
               Read our plot twist
             </a>
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -152,12 +122,7 @@ export function FoundersAbout() {
 
       <section id="story" className="founders-story relative scroll-mt-28 px-6 py-16 md:py-24">
         <div className="founders-story__panel mx-auto max-w-3xl">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.7, ease: easeOut }}
-          >
+          <div className="fade-up">
             <p className="text-[0.7rem] font-medium uppercase tracking-[0.24em] text-primary">
               Our story
             </p>
@@ -213,18 +178,12 @@ export function FoundersAbout() {
                 Founders, CHIC A BOO
               </p>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
       <section className="px-6 pb-24 pt-4">
-        <motion.div
-          className="founders-wink mx-auto max-w-2xl text-center"
-          initial={{ opacity: 0, scale: 0.97 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
+        <div className="founders-wink fade-scale-in mx-auto max-w-2xl text-center">
           <p className="font-heading text-2xl text-foreground md:text-3xl">
             Built by sisters. Powered by yarn, nostalgia, and mild perfectionism.
           </p>
@@ -238,7 +197,7 @@ export function FoundersAbout() {
           >
             Back to shopping
           </Link>
-        </motion.div>
+        </div>
       </section>
     </div>
   );
