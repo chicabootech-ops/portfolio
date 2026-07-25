@@ -132,7 +132,7 @@ export function FoundersAbout() {
               The founders
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
-              One frame filled. One still getting its glow-up. Same twin energy either way.
+              Twin energy, two frames — yarn diplomacy on one side, keepsake conspiracy on the other.
             </p>
           </div>
 
@@ -150,6 +150,8 @@ export function FoundersAbout() {
               role="Co-Founder"
               tease="Chief page-turner & keepsake conspirator"
               delay={0.18}
+              imageSrc="/founders/kanisha.png"
+              imageAlt="Kanisha Agarwal, co-founder of CHIC A BOO"
             />
           </div>
         </div>
