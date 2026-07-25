@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, Lock, ShieldCheck } from "lucide-react";
@@ -51,6 +51,10 @@ export function CheckoutView() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [paymentEnabled, setPaymentEnabled] = useState<boolean | null>(null);
+  // Stable per-mount key so a double-submit / retry reuses one order server-side.
+  const idempotencyKey = useRef<string>(
+    typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `ck_${Date.now()}`
+  );
 
   useEffect(() => {
     getPaymentConfig()
@@ -113,6 +117,7 @@ export function CheckoutView() {
       const checkout = await createCheckout({
         items: items.map((i) => ({ slug: i.slug, quantity: i.quantity })),
         shipping_address: shippingAddress,
+        idempotency_key: idempotencyKey.current,
       });
 
       if (!checkout.razorpay) {

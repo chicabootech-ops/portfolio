@@ -80,6 +80,7 @@ export async function createCheckout(payload: {
   shipping_address: CheckoutAddress;
   billing_address?: CheckoutAddress;
   customer_note?: string;
+  idempotency_key?: string;
 }): Promise<CheckoutResponse> {
   const res = await fetch("/api/payments/checkout", {
     method: "POST",
