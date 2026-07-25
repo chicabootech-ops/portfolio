@@ -1,5 +1,9 @@
 import type { NextConfig } from "next";
 
+// When building the container image we emit a self-contained Next server
+// (`output: "standalone"`) instead of the Cloudflare Worker bundle.
+const isDocker = process.env.DOCKER_BUILD === "1";
+
 const apiUrl =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "http://localhost:8000";
 
@@ -29,6 +33,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  ...(isDocker ? { output: "standalone" as const } : {}),
   images: {
     remotePatterns: [
       { protocol: "http", hostname: "localhost", port: "8000" },
@@ -55,5 +60,8 @@ const nextConfig: NextConfig = {
 
 export default nextConfig;
 
-import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
-initOpenNextCloudflareForDev();
+// Cloudflare dev bindings — not needed (and skipped) for container builds.
+if (!isDocker) {
+  const { initOpenNextCloudflareForDev } = await import("@opennextjs/cloudflare");
+  initOpenNextCloudflareForDev();
+}
