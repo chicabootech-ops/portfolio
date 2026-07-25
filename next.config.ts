@@ -61,7 +61,7 @@ const nextConfig: NextConfig = {
 export default nextConfig;
 
 // Cloudflare dev bindings — not needed (and skipped) for container builds.
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 if (!isDocker) {
-  const { initOpenNextCloudflareForDev } = await import("@opennextjs/cloudflare");
   initOpenNextCloudflareForDev();
 }
