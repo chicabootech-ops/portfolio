@@ -28,7 +28,7 @@ const shortcuts = [
   {
     key: "returns" as const,
     label: "Returns",
-    href: "/account/orders?tab=returns",
+    href: "/account/returns",
     icon: RotateCcw,
     color: "from-amber-500/15 to-amber-500/5 text-amber-700",
   },
