@@ -26,8 +26,8 @@ export default async function RakhiFestivalPage() {
     sections = [];
   }
 
-  const rakhiSections = sections.filter(isRakhiSection);
-  const rails = rakhiSections.length > 0 ? rakhiSections : sections.slice(0, 3);
+  // Product rails only from admin/DB — never invent product lists in code.
+  const rails = sections.filter(isRakhiSection);
   const daysLeft = Math.max(
     0,
     Math.ceil((nextRakhiDate().getTime() - Date.now()) / (1000 * 60 * 60 * 24))
