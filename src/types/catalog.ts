@@ -44,9 +44,18 @@ export type CatalogSection = {
   sort_order: number;
   products: CatalogProduct[];
   categories: CatalogCategory[];
+  metadata?: Record<string, unknown>;
 };
 
 export type CatalogProductDetail = CatalogProduct & {
   brand?: string | null;
   is_featured?: boolean;
+  gallery?: string[];
+  variants?: {
+    id: string;
+    title: string;
+    sku: string;
+    price_paise: number;
+    compare_at_price_paise: number | null;
+  }[];
 };

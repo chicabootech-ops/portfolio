@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { FormEvent, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Mail, Sparkles } from "lucide-react";
+import { Mail } from "lucide-react";
 import { useCollections } from "@/hooks/useCollections";
 
 function InstagramGlyph({ size = 16 }: { size?: number }) {
@@ -41,14 +42,41 @@ const companyLinks = [
   { label: "Wishlist", href: "/wishlist" },
 ];
 
+const policyLinks = [
+  { label: "Privacy", href: "/privacy" },
+  { label: "Terms", href: "/terms" },
+  { label: "Shipping", href: "/shipping" },
+  { label: "Returns", href: "/returns" },
+];
+
 export function Footer() {
   const pathname = usePathname();
   const { data: sections = [] } = useCollections();
+  const [email, setEmail] = useState("");
+  const [newsletterMessage, setNewsletterMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const shopLinks = [
     { label: "All Collections", href: "/" },
     ...sections.slice(0, 4).map((s) => ({ label: s.name, href: `/section/${s.slug}` })),
   ];
   if (HIDDEN_ROUTES.has(pathname)) return null;
+
+  async function subscribe(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSubmitting(true);
+    setNewsletterMessage("");
+    const response = await fetch("/api/newsletter", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    }).catch(() => null);
+    const data = await response?.json().catch(() => ({}));
+    setNewsletterMessage(
+      data?.message ?? (response?.ok ? "Check your inbox to confirm." : "Please try again.")
+    );
+    if (response?.ok) setEmail("");
+    setSubmitting(false);
+  }
 
   return (
     <footer className="mt-auto border-t border-border/40 bg-secondary/20">
@@ -91,19 +119,40 @@ export function Footer() {
           <p className="mt-4 text-sm text-muted-foreground">
             Little joys, new blooms and stories — straight to your inbox.
           </p>
-          <a
-            href="mailto:hello@chicaboo.co?subject=Keep%20me%20posted"
-            className="mt-4 inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
-          >
-            <Sparkles size={15} /> Say hello
-          </a>
+          <form onSubmit={subscribe} className="mt-4 flex gap-2">
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="you@example.com"
+              aria-label="Email address"
+              className="min-w-0 flex-1 rounded-full border border-border/60 bg-white/70 px-4 text-sm outline-none focus:border-primary"
+            />
+            <button
+              type="submit"
+              disabled={submitting}
+              className="h-10 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+            >
+              {submitting ? "Joining…" : "Join"}
+            </button>
+          </form>
+          {newsletterMessage ? (
+            <p className="mt-2 text-xs text-muted-foreground">{newsletterMessage}</p>
+          ) : null}
         </div>
       </div>
 
       <div className="border-t border-border/40">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 py-5 text-xs text-muted-foreground sm:flex-row">
           <p>© {new Date().getFullYear()} Chic A Boo. Crafted with love in India.</p>
-          <p>Secure payments via Razorpay · UPI · Cards · Netbanking</p>
+          <div className="flex flex-wrap justify-center gap-3">
+            {policyLinks.map((link) => (
+              <Link key={link.href} href={link.href} className="hover:text-primary">
+                {link.label}
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </footer>

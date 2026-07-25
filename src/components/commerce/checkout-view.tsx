@@ -43,7 +43,19 @@ const EMPTY_FORM: FormState = {
 export function CheckoutView() {
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
-  const { items, subtotalPaise, count, clear, isReady } = useCart();
+  const {
+    items,
+    subtotalPaise,
+    discountPaise,
+    couponCode,
+    count,
+    clear,
+    isReady,
+    applyCoupon,
+    clearCoupon,
+  } = useCart();
+  const [couponInput, setCouponInput] = useState("");
+  const [couponBusy, setCouponBusy] = useState(false);
   const { data: addresses } = useAddresses(!!user);
 
   const [selectedId, setSelectedId] = useState<string>("new");
@@ -117,6 +129,7 @@ export function CheckoutView() {
       const checkout = await createCheckout({
         items: items.map((i) => ({ slug: i.slug, quantity: i.quantity })),
         shipping_address: shippingAddress,
+        coupon_code: couponCode ?? undefined,
         idempotency_key: idempotencyKey.current,
       });
 
@@ -314,11 +327,52 @@ export function CheckoutView() {
 
       <aside className="h-fit rounded-2xl border border-border/40 bg-white/70 p-6 lg:sticky lg:top-28">
         <h2 className="font-heading text-lg font-semibold text-foreground">Order total</h2>
+        <div className="mt-4 flex gap-2">
+          <input
+            value={couponInput}
+            onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+            placeholder="Coupon code"
+            className="h-10 flex-1 rounded-full border border-border/60 bg-white px-3 text-sm outline-none focus:border-primary"
+          />
+          <button
+            type="button"
+            disabled={couponBusy || !couponInput.trim()}
+            onClick={async () => {
+              setCouponBusy(true);
+              setError(null);
+              try {
+                await applyCoupon(couponInput.trim());
+                setCouponInput("");
+              } catch (err) {
+                setError(err instanceof Error ? err.message : "Invalid coupon");
+              } finally {
+                setCouponBusy(false);
+              }
+            }}
+            className="h-10 rounded-full bg-secondary px-4 text-xs font-semibold disabled:opacity-50"
+          >
+            Apply
+          </button>
+        </div>
+        {couponCode ? (
+          <p className="mt-2 flex items-center justify-between text-xs text-emerald-700">
+            <span>Applied: {couponCode}</span>
+            <button type="button" className="underline" onClick={() => void clearCoupon()}>
+              Remove
+            </button>
+          </p>
+        ) : null}
         <dl className="mt-5 space-y-3 text-sm">
           <div className="flex justify-between text-muted-foreground">
             <dt>Subtotal ({count} item{count === 1 ? "" : "s"})</dt>
             <dd className="font-medium text-foreground">{formatPaise(subtotalPaise)}</dd>
           </div>
+          {discountPaise > 0 ? (
+            <div className="flex justify-between text-emerald-700">
+              <dt>Discount</dt>
+              <dd className="font-medium">-{formatPaise(discountPaise)}</dd>
+            </div>
+          ) : null}
           <div className="flex justify-between text-muted-foreground">
             <dt>Shipping &amp; taxes</dt>
             <dd className="font-medium text-foreground">Calculated securely</dd>
@@ -326,7 +380,9 @@ export function CheckoutView() {
         </dl>
         <div className="mt-5 flex justify-between border-t border-border/40 pt-4">
           <span className="font-semibold text-foreground">Payable</span>
-          <span className="text-lg font-bold text-foreground">{formatPaise(subtotalPaise)}</span>
+          <span className="text-lg font-bold text-foreground">
+            {formatPaise(Math.max(0, subtotalPaise - discountPaise))}
+          </span>
         </div>
 
         {error && (

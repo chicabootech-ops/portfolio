@@ -1,3 +1,5 @@
+import { HomeHero } from "@/components/sections/home/home-hero";
+import { ShopByCollectionSection } from "@/components/sections/home/shop-by-collection/shop-by-collection-section";
 import { SectionProductsRail } from "@/components/sections/home/section-products-rail";
 import { fetchSections } from "@/services/catalog.service";
 
@@ -12,7 +14,11 @@ export default async function HomePage() {
   }
 
   return (
-    <main className="min-h-screen overflow-x-hidden pt-19 sm:pt-21 lg:pt-40 pb-16">
+    <main className="min-h-screen overflow-x-hidden pb-16">
+      <HomeHero />
+      <div className="pt-6 sm:pt-8">
+        <ShopByCollectionSection />
+      </div>
       {loadError ? (
         <section className="w-full px-6 py-12 text-center">
           <p className="text-sm text-muted-foreground">

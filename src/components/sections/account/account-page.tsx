@@ -8,8 +8,10 @@ import { useMe } from "@/hooks/useMe";
 import { useSecurityDevices } from "@/hooks/useSecurity";
 import { deriveSecurityStatus, mapUserAddressToAccount } from "@/lib/account/adapters";
 import { mapCurrentUserToAuthUser } from "@/lib/auth/map-user";
-import type { AccountAddress } from "@/types/account";
+import { mapOrderStatus } from "@/lib/orders";
+import type { AccountAddress, AccountOrder } from "@/types/account";
 import type { AuthUser } from "@/types/auth";
+import { fetchMyOrders } from "@/services/commerce.service";
 import { AccountHeader } from "./account-header";
 import { EditProfileSheet } from "./edit-profile-sheet";
 import { OrderShortcuts } from "./order-shortcuts";
@@ -33,6 +35,30 @@ export function AccountPage() {
   const { data: addressRows, isLoading: addrLoading } = useAddresses(hasSession);
   const { data: devices } = useSecurityDevices(hasSession);
   const [editorOpen, setEditorOpen] = useState(false);
+  const [recentOrders, setRecentOrders] = useState<AccountOrder[]>([]);
+  const [orderCount, setOrderCount] = useState(0);
+
+  useEffect(() => {
+    if (!hasSession) return;
+    fetchMyOrders()
+      .then((res) => {
+        setOrderCount(res.total ?? res.items?.length ?? 0);
+        setRecentOrders(
+          (res.items ?? []).slice(0, 3).map((o) => ({
+            id: o.id,
+            orderNumber: `#${o.order_number}`,
+            productName: `${o.item_count} item${o.item_count === 1 ? "" : "s"}`,
+            productImage: "/collections/tulips.jpeg",
+            status: mapOrderStatus(o.status),
+            price: o.grand_total_paise / 100,
+            orderedAt: o.created_at,
+          }))
+        );
+      })
+      .catch(() => {
+        setRecentOrders([]);
+      });
+  }, [hasSession]);
 
   useEffect(() => {
     if (meLoading) return;
@@ -71,11 +97,11 @@ export function AccountPage() {
 
         <div className="space-y-5 md:space-y-6">
           <AccountHeader user={profile} onEditProfile={() => setEditorOpen(true)} />
-          <OrderShortcuts stats={EMPTY_STATS} />
+          <OrderShortcuts stats={{ ...EMPTY_STATS, orders: orderCount }} />
 
           <div className="grid gap-5 lg:grid-cols-2 lg:gap-6">
             <div className="space-y-5 lg:col-span-2">
-              <RecentOrders orders={[]} />
+              <RecentOrders orders={recentOrders} />
             </div>
             {addressesReady ? (
               <AddressesSection addresses={addresses} />

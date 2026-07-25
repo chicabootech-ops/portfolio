@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Menu, X, Search, User, Heart, ShoppingBag, ChevronDown, Loader2 } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useCart } from "@/components/providers/cart-provider";
@@ -10,12 +11,25 @@ import { mainNavLinks, siteConfig } from "@/config/site";
 import { UserAccountDropdown } from "./user-account-dropdown";
 
 export default function Navbar() {
+  const router = useRouter();
   const { user, isLoading } = useAuth();
   const { count: cartCount } = useCart();
   const { data: shopCategories = [], isLoading: categoriesLoading } = useCollections();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchEditable, setSearchEditable] = useState(false);
   const [mobileSearchEditable, setMobileSearchEditable] = useState(false);
+
+  const onSearch = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const q = String(fd.get("q") ?? "").trim();
+    if (!q) {
+      router.push("/search");
+      return;
+    }
+    router.push(`/search?q=${encodeURIComponent(q)}`);
+    setIsMobileMenuOpen(false);
+  };
 
   return (
     <>
@@ -53,7 +67,7 @@ export default function Navbar() {
           <form
             role="search"
             className="hidden lg:flex relative w-full max-w-md mx-auto group"
-            onSubmit={(e) => e.preventDefault()}
+            onSubmit={onSearch}
             autoComplete="off"
           >
             <input
@@ -165,7 +179,7 @@ export default function Navbar() {
           <form
             role="search"
             className="relative w-full mb-6"
-            onSubmit={(e) => e.preventDefault()}
+            onSubmit={onSearch}
             autoComplete="off"
           >
             <input

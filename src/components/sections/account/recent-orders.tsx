@@ -87,7 +87,7 @@ export function RecentOrders({ orders }: RecentOrdersProps) {
                   size="sm"
                   className="h-11 min-h-[44px] flex-1 rounded-full sm:flex-none sm:px-4"
                 >
-                  <Link href={`/track-order?order=${order.orderNumber}`}>
+                  <Link href={`/track-order?id=${order.id}`}>
                     Track
                   </Link>
                 </Button>

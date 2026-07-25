@@ -75,11 +75,38 @@ export async function getPaymentConfig(): Promise<{ enabled: boolean; key_id: st
   return jsonOrThrow(res);
 }
 
+export type OrderDetail = {
+  id: string;
+  order_number: number;
+  status: string;
+  payment_status: string;
+  fulfillment_status: string;
+  currency: string;
+  subtotal_paise: number;
+  discount_paise: number;
+  tax_paise: number;
+  shipping_paise: number;
+  grand_total_paise: number;
+  shipping_address: Record<string, string>;
+  customer_note: string | null;
+  created_at: string;
+  items: {
+    product_name: string;
+    variant_title: string;
+    sku: string;
+    quantity: number;
+    unit_price_paise: number;
+    line_total_paise: number;
+  }[];
+  invoice: { invoice_number: number; has_pdf: boolean; issued_at: string | null } | null;
+};
+
 export async function createCheckout(payload: {
   items: CheckoutItem[];
   shipping_address: CheckoutAddress;
   billing_address?: CheckoutAddress;
   customer_note?: string;
+  coupon_code?: string;
   idempotency_key?: string;
 }): Promise<CheckoutResponse> {
   const res = await fetch("/api/payments/checkout", {
@@ -104,7 +131,26 @@ export async function verifyPayment(payload: {
   return jsonOrThrow(res);
 }
 
-export async function fetchMyOrders(): Promise<{ items: OrderListItem[]; total: number }> {
+export async function fetchMyOrders(): Promise<{
+  items: OrderListItem[];
+  total: number;
+  page?: number;
+  page_size?: number;
+}> {
   const res = await fetch("/api/orders", { cache: "no-store" });
+  return jsonOrThrow(res);
+}
+
+export async function fetchOrder(orderId: string): Promise<OrderDetail> {
+  const res = await fetch(`/api/orders/${orderId}`, { cache: "no-store" });
+  return jsonOrThrow(res);
+}
+
+export async function cancelOrder(orderId: string, reason?: string): Promise<OrderDetail> {
+  const res = await fetch(`/api/orders/${orderId}/cancel`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reason }),
+  });
   return jsonOrThrow(res);
 }

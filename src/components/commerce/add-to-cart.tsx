@@ -19,14 +19,16 @@ export function AddToCart({ slug, name, image, pricePaise }: AddToCartProps) {
   const [added, setAdded] = useState(false);
 
   const add = () => {
-    addItem({ slug, name, image, pricePaise }, qty);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1600);
+    void addItem({ slug, name, image, pricePaise }, qty).then(() => {
+      setAdded(true);
+      setTimeout(() => setAdded(false), 1600);
+    });
   };
 
   const buyNow = () => {
-    addItem({ slug, name, image, pricePaise }, qty);
-    router.push("/checkout");
+    void addItem({ slug, name, image, pricePaise }, qty).then(() => {
+      router.push("/checkout");
+    });
   };
 
   return (
