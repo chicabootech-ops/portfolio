@@ -59,12 +59,12 @@ export function FoundersAbout() {
       <section className="founders-hero relative overflow-hidden">
         <div className="founders-hero__media" aria-hidden>
           <Image
-            src="/founders/ragini.jpeg"
+            src="/62908b2ecfa271a7ebdbd2d308cea540.jpg"
             alt=""
             fill
             priority
             sizes="100vw"
-            className="object-cover object-[center_22%] opacity-[0.28] sm:opacity-[0.34]"
+            className="object-cover object-[center_top] opacity-[0.55] sm:opacity-[0.65]"
           />
         </div>
         <div className="founders-hero__wash" aria-hidden />

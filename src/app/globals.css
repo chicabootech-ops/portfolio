@@ -308,13 +308,18 @@
   inset: 0;
   background:
     linear-gradient(
-      105deg,
-      rgba(245, 239, 235, 0.94) 0%,
-      rgba(245, 239, 235, 0.78) 42%,
-      rgba(245, 239, 235, 0.35) 72%,
-      rgba(227, 198, 198, 0.22) 100%
+      180deg,
+      rgba(245, 239, 235, 0.12) 0%,
+      rgba(245, 239, 235, 0.35) 38%,
+      rgba(245, 239, 235, 0.82) 68%,
+      rgba(245, 239, 235, 0.96) 100%
     ),
-    radial-gradient(ellipse 55% 50% at 80% 30%, rgba(193, 155, 84, 0.22), transparent 60%);
+    linear-gradient(
+      90deg,
+      rgba(245, 239, 235, 0.55) 0%,
+      transparent 45%,
+      transparent 100%
+    );
 }
 
 .founders-hero__grain {
