@@ -2,8 +2,28 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Instagram, Mail, Sparkles } from "lucide-react";
+import { Mail, Sparkles } from "lucide-react";
 import { useCollections } from "@/hooks/useCollections";
+
+function InstagramGlyph({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="2" y="2" width="20" height="20" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <line x1="17.5" y1="6.5" x2="17.5" y2="6.5" />
+    </svg>
+  );
+}
 
 const HIDDEN_ROUTES = new Set([
   "/login",
@@ -49,7 +69,7 @@ export function Footer() {
               aria-label="Instagram"
               className="grid h-9 w-9 place-items-center rounded-full border border-border/50 bg-white/60 text-foreground/70 transition hover:border-primary hover:text-primary"
             >
-              <Instagram size={16} />
+              <InstagramGlyph size={16} />
             </a>
             <a
               href="mailto:hello@chicaboo.co"
